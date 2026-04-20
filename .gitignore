@@ -1,0 +1,63 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files (ALL environments)
+.env
+.env*.local
+.env.vercel
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# temp credential & token files
+temp_*.txt
+token_result.txt
+triggerResult.txt
+
+# token/debug scripts (contain hardcoded tokens)
+testToken.ts
+testDbToken.ts
+updateToken.ts
+updateRealToken.ts
+update_token_sync.ts
+triggerAppApproval.ts
+triggerPermissions.ts
+
+# scratch/debug files
+scratch*.ts
+debug_*.ts
+sync_*.ts
+readColumns.ts
+testSheet.ts
+out*.json
+build-log.txt
+test-result.txt
+test-realtime*.mjs

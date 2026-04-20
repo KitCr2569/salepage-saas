@@ -1,0 +1,387 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-surface-900 text-surface-50 antialiased;
+    font-size: 14px;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-500;
+  }
+}
+
+@layer components {
+  /* ── Buttons ─────────────────────────────────── */
+  .btn-primary {
+    @apply bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200
+           hover:bg-primary-400 hover:shadow-[0_6px_24px_rgba(124,58,237,0.45)]
+           active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary-500 text-primary-300 px-6 py-3 rounded-xl font-semibold transition-all duration-200
+           hover:bg-primary-500/10 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* ── Cards ───────────────────────────────────── */
+  .card-product {
+    @apply bg-surface-800 rounded-2xl cursor-pointer transition-all duration-200
+           border border-surface-700
+           hover:border-primary-500/50 hover:shadow-[0_8px_32px_rgba(124,58,237,0.2)]
+           hover:-translate-y-1;
+  }
+
+  /* ── Badges ──────────────────────────────────── */
+  .badge {
+    @apply absolute -top-1.5 -right-1.5 bg-primary-500 text-white text-[10px] font-bold
+           min-w-[18px] h-[18px] rounded-full flex items-center justify-center leading-none
+           shadow-[0_0_8px_rgba(124,58,237,0.6)];
+  }
+
+  /* ── Category Tabs ───────────────────────────── */
+  .tab-active {
+    @apply text-white;
+    background-color: #7C3AED;
+    box-shadow: 0 2px 12px rgba(124, 58, 237, 0.4);
+  }
+
+  .tab-inactive {
+    @apply bg-surface-800/60 text-surface-200 hover:bg-surface-700/60 border border-surface-700;
+  }
+
+  /* ── Overlay ─────────────────────────────────── */
+  .overlay-backdrop {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-40;
+  }
+
+  /* ── Scrollbar hide ──────────────────────────── */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Glass card (shared) ─────────────────────── */
+  .glass-card {
+    @apply bg-surface-800/70 backdrop-blur-xl border border-surface-700/50 rounded-2xl;
+  }
+
+  /* ── Input ───────────────────────────────────── */
+  .input-field {
+    @apply w-full bg-surface-800 border border-surface-700 rounded-xl px-4 py-2.5
+           text-surface-50 placeholder:text-surface-400
+           focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500
+           transition-all duration-200;
+  }
+
+  /* ── Price gradient text ─────────────────────── */
+  .text-price {
+    @apply font-bold;
+    background: linear-gradient(135deg, #A78BFA 0%, #67E8F9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .currency-symbol {
+    font-family: "Segoe UI", Arial, Helvetica, system-ui, sans-serif;
+  }
+
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #A78BFA 0%, #67E8F9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Chat Dashboard Component Styles — LIGHT theme (matches Admin)
+   ═══════════════════════════════════════════════════════════════ */
+
+.chat-container {
+  font-family: 'Inter', 'Noto Sans Thai', system-ui, sans-serif;
+  --chat-bg: #FFFFFF;
+  --chat-bg-alt: #F8FAFC;
+  --chat-border: #E2E8F0;
+  --chat-border-light: #F1F5F9;
+  --chat-text: #1E293B;
+  --chat-text-muted: #64748B;
+  --chat-text-faint: #94A3B8;
+  --chat-hover: #F1F5F9;
+  --chat-selected: #EDE9FE;
+  color: var(--chat-text);
+}
+
+/* ── Override ALL surface-* colors inside chat ─────────────────── */
+.chat-container,
+.chat-container * {
+  --tw-bg-opacity: 1;
+}
+
+/* Background overrides */
+.chat-container .bg-surface-950 { background-color: var(--chat-bg) !important; }
+.chat-container .bg-surface-950\/80 { background-color: rgba(255, 255, 255, 0.8) !important; }
+.chat-container .bg-surface-950\/90 { background-color: rgba(255, 255, 255, 0.9) !important; }
+.chat-container .bg-surface-950\/95 { background-color: rgba(255, 255, 255, 0.95) !important; }
+.chat-container .bg-surface-900 { background-color: var(--chat-bg) !important; }
+.chat-container .bg-surface-900\/80 { background-color: rgba(255, 255, 255, 0.8) !important; }
+.chat-container .bg-surface-900\/90 { background-color: rgba(255, 255, 255, 0.9) !important; }
+.chat-container .bg-surface-900\/95 { background-color: rgba(255, 255, 255, 0.95) !important; }
+.chat-container .bg-surface-800 { background-color: var(--chat-bg-alt) !important; }
+.chat-container .bg-surface-800\/50 { background-color: rgba(248, 250, 252, 0.5) !important; }
+.chat-container .bg-surface-800\/60 { background-color: rgba(248, 250, 252, 0.6) !important; }
+.chat-container .bg-surface-800\/70 { background-color: rgba(248, 250, 252, 0.7) !important; }
+.chat-container .bg-surface-700 { background-color: #F1F5F9 !important; }
+.chat-container .bg-surface-700\/60 { background-color: rgba(241, 245, 249, 0.6) !important; }
+.chat-container .bg-surface-600 { background-color: #E2E8F0 !important; }
+
+/* Text overrides */
+.chat-container .text-surface-50 { color: var(--chat-text) !important; }
+.chat-container .text-surface-100 { color: var(--chat-text) !important; }
+.chat-container .text-surface-200 { color: #334155 !important; }
+.chat-container .text-surface-300 { color: #475569 !important; }
+.chat-container .text-surface-400 { color: var(--chat-text-muted) !important; }
+.chat-container .text-surface-500 { color: var(--chat-text-faint) !important; }
+.chat-container .text-surface-600 { color: #CBD5E1 !important; }
+.chat-container .text-surface-700 { color: #E2E8F0 !important; }
+
+/* Border overrides */
+.chat-container .border-surface-600 { border-color: var(--chat-border) !important; }
+.chat-container .border-surface-600\/50 { border-color: rgba(226, 232, 240, 0.5) !important; }
+.chat-container .border-surface-700 { border-color: var(--chat-border) !important; }
+.chat-container .border-surface-700\/50 { border-color: rgba(226, 232, 240, 0.5) !important; }
+.chat-container .border-surface-800 { border-color: var(--chat-border-light) !important; }
+.chat-container .border-surface-800\/50 { border-color: rgba(241, 245, 249, 0.5) !important; }
+
+/* Hover overrides */
+.chat-container .hover\:bg-surface-800:hover { background-color: var(--chat-hover) !important; }
+.chat-container .hover\:bg-surface-800\/50:hover { background-color: var(--chat-hover) !important; }
+.chat-container .hover\:bg-surface-700:hover { background-color: #E2E8F0 !important; }
+.chat-container .hover\:bg-surface-700\/60:hover { background-color: rgba(226, 232, 240, 0.6) !important; }
+.chat-container .hover\:bg-surface-600:hover { background-color: #CBD5E1 !important; }
+.chat-container .hover\:text-surface-100:hover { color: var(--chat-text) !important; }
+.chat-container .hover\:text-surface-300:hover { color: #475569 !important; }
+
+/* Brand/accent color overrides */
+.chat-container .text-brand-300 { color: #C4B5FD !important; }
+.chat-container .text-brand-400 { color: #A78BFA !important; }
+.chat-container .text-brand-500 { color: #7C3AED !important; }
+.chat-container .bg-brand-600\/10 { background-color: rgba(124, 58, 237, 0.06) !important; }
+.chat-container .border-l-brand-500 { border-left-color: #7C3AED !important; }
+.chat-container .border-brand-500 { border-color: #7C3AED !important; }
+.chat-container .ring-brand-500 { --tw-ring-color: #7C3AED !important; }
+.chat-container .focus\:ring-brand-500:focus { --tw-ring-color: #7C3AED !important; }
+
+/* ── Chat-specific component styles (light) ────────────────────── */
+
+.chat-container .glass-card {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--chat-border-light) !important;
+  border-radius: 1rem;
+}
+
+.chat-container .glass-card-hover {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--chat-border-light) !important;
+  border-radius: 1rem;
+  transition: all 0.2s;
+}
+.chat-container .glass-card-hover:hover {
+  background-color: var(--chat-hover) !important;
+  border-color: var(--chat-border) !important;
+}
+
+.chat-container .badge-unread {
+  @apply bg-primary-500 text-white min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold;
+}
+
+.chat-container .channel-icon {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm;
+}
+
+.chat-container .msg-inbound {
+  background-color: #F3E8FF !important;
+  color: var(--chat-text) !important;
+  @apply rounded-2xl rounded-bl-md px-4 py-2.5;
+  word-break: break-word;
+}
+
+.chat-container .msg-outbound {
+  @apply bg-primary-600 text-white rounded-2xl rounded-br-md px-4 py-2.5;
+  word-break: break-word;
+}
+
+.chat-container .msg-note {
+  background-color: #FFFBEB !important;
+  border: 1px solid #FDE68A !important;
+  color: #92400E !important;
+  @apply rounded-xl px-4 py-2.5 max-w-[85%] mx-auto;
+}
+
+.chat-container .input-field {
+  background-color: var(--chat-bg) !important;
+  border: 1px solid var(--chat-border) !important;
+  color: var(--chat-text) !important;
+  @apply w-full rounded-xl px-4 py-2.5 transition-all duration-200;
+}
+.chat-container .input-field::placeholder {
+  color: var(--chat-text-faint) !important;
+}
+.chat-container .input-field:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3) !important;
+  border-color: #7C3AED !important;
+}
+
+.chat-container .btn-primary {
+  @apply bg-primary-500 hover:bg-primary-400 text-white font-medium px-4 py-2 rounded-xl
+         transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.chat-container .btn-secondary {
+  background-color: var(--chat-bg-alt) !important;
+  border: 1px solid var(--chat-border) !important;
+  color: var(--chat-text-muted) !important;
+  @apply font-medium px-4 py-2 rounded-xl transition-all duration-200;
+}
+.chat-container .btn-secondary:hover {
+  background-color: var(--chat-hover) !important;
+}
+
+.chat-container .btn-ghost {
+  color: var(--chat-text-muted) !important;
+  @apply font-medium px-3 py-2 rounded-xl transition-all duration-200;
+}
+.chat-container .btn-ghost:hover {
+  background-color: var(--chat-hover) !important;
+  color: var(--chat-text) !important;
+}
+
+.chat-container .btn-icon {
+  color: var(--chat-text-muted) !important;
+  @apply p-2 rounded-xl transition-all duration-200 flex items-center justify-center;
+}
+.chat-container .btn-icon:hover {
+  background-color: var(--chat-hover) !important;
+  color: var(--chat-text) !important;
+}
+
+.chat-container .status-dot {
+  @apply w-2.5 h-2.5 rounded-full;
+}
+
+.chat-container .status-dot-online {
+  @apply w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse-dot;
+}
+
+.chat-container .status-dot-offline {
+  @apply w-2.5 h-2.5 rounded-full bg-gray-300;
+}
+
+.chat-container .shimmer {
+  background: linear-gradient(90deg, #FAF5FF 25%, #E9D5FF 50%, #FAF5FF 75%) !important;
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+  @apply rounded-lg;
+}
+
+/* Chat container custom scrollbar (light) */
+.chat-container ::-webkit-scrollbar-track {
+  background-color: var(--chat-bg) !important;
+}
+.chat-container ::-webkit-scrollbar-thumb {
+  background-color: #D8B4FE !important;
+  @apply rounded-full;
+}
+.chat-container ::-webkit-scrollbar-thumb:hover {
+  background-color: #7C3AED !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Admin Input Fields — Force readable dark text
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Admin form readability fix */
+
+/* Force dark text on form inputs inside chat/admin (light background areas only) */
+.chat-container input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+.chat-container textarea,
+.chat-container select,
+.admin-panel input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+.admin-panel textarea,
+.admin-panel select {
+  color: #1f2937 !important; /* gray-800 */
+}
+
+.chat-container input::placeholder,
+.chat-container textarea::placeholder,
+.admin-panel input::placeholder,
+.admin-panel textarea::placeholder {
+  color: #9ca3af !important; /* gray-400 — visible but muted */
+}
+
+/* ── Dark modal inputs — restore white text ─────────────────────
+   CreateOrderModal uses class="dark-modal" so inputs inside it
+   get white text regardless of the .chat-container dark override */
+.chat-container .dark-modal input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+.chat-container .dark-modal textarea,
+.chat-container .dark-modal select {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Admin-specific: ensure text-pink classes on inputs become readable */
+input.text-pink-500,
+input.text-pink-600,
+input.text-pink-400,
+textarea.text-pink-500,
+textarea.text-pink-600,
+textarea.text-pink-400,
+select.text-pink-500,
+select.text-pink-600 {
+  color: #1f2937 !important;
+}
+
+/* Override inline pink text values in admin form fields */
+.bg-pink-50 input,
+.bg-pink-50 textarea,
+.bg-pink-50 select,
+.bg-pink-100 input,
+.bg-pink-100 textarea,
+.bg-white input,
+.bg-white textarea,
+.bg-white select {
+  color: #1f2937 !important;
+}

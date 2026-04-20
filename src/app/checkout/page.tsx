@@ -1,0 +1,758 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import { products as allProducts } from "@/data";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useShopStore } from "@/store/useShopStore";
+import { banks } from "@/data";
+import { useDiscountStore } from "@/store/useDiscountStore";
+import { useCartStore } from "@/store/useCartStore";
+import PostalCodeAutocomplete from "@/components/PostalCodeAutocomplete";
+import { t, type Lang } from "@/lib/translations";
+import Swal from 'sweetalert2';
+
+const FALLBACK_SHIPPING = [
+    { id: "ems", name: "EMS", price: 0, logo: "/shipping/ems.png" },
+    { id: "flash", name: "Flash Express", price: 0, logo: "/shipping/flash.png" },
+    { id: "jt", name: "J&T Express", price: 0, logo: "/shipping/jt.png" },
+    { id: "kerry", name: "Kerry Express", price: 0, logo: "/shipping/kerry.png" },
+    { id: "thaipost", name: "ไปรษณีย์ไทย", price: 0, logo: "/shipping/thaipost.png" },
+];
+
+interface CartItem {
+    image: string;
+    name: string;
+    variant: string;
+    qty: number;
+    price: number;
+    pid?: string;
+}
+
+export default function CheckoutPage() {
+    const [selectedShipping, setSelectedShipping] = useState("");
+    const [showCart, setShowCart] = useState(false);
+    const [discountCode, setDiscountCode] = useState("");
+    const [note, setNote] = useState("");
+    const [wantTaxInvoice, setWantTaxInvoice] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+    const [isComplete, setIsComplete] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [cartPage, setCartPage] = useState(1);
+    const [slipAttached, setSlipAttached] = useState(false);
+    const [slipName, setSlipName] = useState("");
+    const [slipPreview, setSlipPreview] = useState<string | null>(null);
+    const [showSlipWarning, setShowSlipWarning] = useState(false);
+    const [lang, setLang] = useState<Lang>("th");
+
+    // Get settings from admin store
+    const { shippingMethods: storeShipping, bankAccount, paymentMethods, promptPayQR, addressRequired, phoneRequired, emailRequired, receiptEnabled, receiptName: receiptAuthorName, receiptSignature: receiptSig } = useSettingsStore();
+    const shopConfig = useShopStore((s) => s.shopConfig);
+
+    // Map shipping method IDs to logo filenames
+    const getShippingLogo = (id: string) => {
+        const logoMap: Record<string, string> = {
+            registered: "thaipost",
+            ems: "ems",
+            kerry: "kerry",
+            flash: "flash",
+            jt: "jt",
+            thaipost: "thaipost",
+            dhl: "dhl",
+            grab: "grab",
+            best: "best",
+            ninjavan: "ninjavan",
+            scg: "scg",
+            shopee: "shopee",
+            lazada: "lazada",
+        };
+        return `/logos/${logoMap[id] || id}.png`;
+    };
+
+    const SHIPPING_METHODS = storeShipping.filter(m => m.enabled).length > 0
+        ? storeShipping.filter(m => m.enabled).map(m => ({ id: m.id, name: m.name, price: m.price, logo: getShippingLogo(m.id) }))
+        : FALLBACK_SHIPPING;
+
+    // Wait for zustand persist hydration before showing/hiding fields
+    const [hydrated, setHydrated] = useState(false);
+    useEffect(() => {
+        setHydrated(true);
+        // Load the actual system settings from Database
+        fetch("/api/settings")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data && Object.keys(data.data).length > 0) {
+                     useSettingsStore.setState(data.data);
+                }
+            })
+            .catch(err => console.error("Failed to load settings:", err));
+    }, []);
+
+    const [form, setForm] = useState({
+        name: "",
+        email: "",
+        postalCode: "",
+        province: "",
+        district: "",
+        subdistrict: "",
+        address: "",
+        phone: "",
+        taxName: "",
+        taxAddress: "",
+        taxId: "",
+    });
+
+    // Determine which fields to show (after hydration, use store values; before, show all)
+    const showAddress = !hydrated || addressRequired !== "off";
+    const showEmail = !hydrated || emailRequired !== "off";
+    const showPhone = !hydrated || phoneRequired !== "off";
+    const showReceipt = !hydrated || receiptEnabled !== false;
+
+    // Load cart data from URL or localStorage
+    useEffect(() => {
+        try {
+            // Try URL params first
+            const params = new URLSearchParams(window.location.search);
+            const cartParam = params.get("cart");
+
+            if (cartParam) {
+                const parsed = JSON.parse(decodeURIComponent(cartParam));
+                const items: CartItem[] = parsed.map((ci: any) => {
+                    const product = allProducts.find((p) => p.id === ci.pid);
+                    const variant = product?.variants?.find((v: any) => v.id === ci.option) || product?.variants?.[0];
+                    return {
+                        pid: ci.pid || "",
+                        image: product?.images?.[0] || ci.image || "/placeholder.jpg",
+                        name: ci.name || product?.name || `สินค้า ${ci.pid}`,
+                        variant: ci.optionName || variant?.name || ci.option || "",
+                        qty: ci.qty || 1,
+                        price: ci.price ?? (variant?.price || 0),
+                    };
+                });
+                setCartItems(items);
+                return;
+            }
+
+            // check for previously purchased with this link
+            const refId = params.get("refId");
+            if (refId) {
+                const existingPurchasedId = localStorage.getItem(`hdg_purchased_ref_${refId}`);
+                if (existingPurchasedId) {
+                    window.location.href = `/pay/${existingPurchasedId}`;
+                    return;
+                }
+            }
+
+            // Try localStorage
+            const stored = localStorage.getItem("hdg_checkout_cart");
+            if (stored) {
+                setCartItems(JSON.parse(stored));
+            }
+        } catch (e) {
+            console.error("Failed to load cart:", e);
+        }
+    }, []);
+
+    const handleChange = (field: string, value: string) => {
+        setForm((p) => ({ ...p, [field]: value }));
+    };
+
+    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const shippingCost = SHIPPING_METHODS.find((m) => m.id === selectedShipping)?.price || 0;
+
+    // Discount
+    const validateCode = useDiscountStore((s) => s.validateCode);
+    const [discountResult, setDiscountResult] = useState<{ valid: boolean; discount: number; message: string; type?: string } | null>(null);
+    const discountAmount = discountResult?.valid ? discountResult.discount : 0;
+    const freeShipping = discountResult?.valid && discountResult?.type === "free_shipping";
+    const finalShipping = freeShipping ? 0 : shippingCost;
+    const total = subtotal - discountAmount + finalShipping;
+
+    const handleApplyDiscount = () => {
+        if (!discountCode.trim()) return;
+        const totalQty = cartItems.reduce((sum, item) => sum + item.qty, 0);
+        const result = validateCode(discountCode, subtotal, totalQty);
+        setDiscountResult(result);
+    };
+
+    const ITEMS_PER_PAGE = 1;
+    const totalPages = Math.max(1, Math.ceil(cartItems.length / ITEMS_PER_PAGE));
+    const pagedItems = cartItems.slice((cartPage - 1) * ITEMS_PER_PAGE, cartPage * ITEMS_PER_PAGE);
+
+    const handleSubmit = async () => {
+        // Validate customer info
+        if (!form.name.trim()) {
+            setSubmitError(lang === "th" ? "⚠️ กรุณากรอกชื่อ-นามสกุล" : "⚠️ Please enter your name");
+            return;
+        }
+        if (showPhone && !form.phone.trim()) {
+            setSubmitError(lang === "th" ? "⚠️ กรุณากรอกเบอร์โทรศัพท์" : "⚠️ Please enter your phone number");
+            return;
+        }
+        if (showEmail && !form.email.trim()) {
+            setSubmitError(lang === "th" ? "⚠️ กรุณากรอกอีเมล" : "⚠️ Please enter your email");
+            return;
+        }
+        if (showAddress && (!form.address.trim() || !form.province.trim() || !form.district.trim() || !form.postalCode.trim())) {
+            setSubmitError(lang === "th" ? "⚠️ กรุณากรอกที่อยู่ให้ครบถ้วน" : "⚠️ Please fill in all address fields");
+            return;
+        }
+
+        setIsSending(true);
+        setSubmitError("");
+
+        try {
+            // Generate order number (using Thailand timezone)
+            const bangkokFormatter = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Bangkok',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            });
+            const yyyymmdd = bangkokFormatter.format(new Date()).replace(/-/g, '');
+            const randomSuffix = Math.floor(Math.random() * 900) + 100;
+            const orderNumber = `ORD-${yyyymmdd}-${randomSuffix}`;
+
+            // Save order to backend
+            const orderRes = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    orderNumber,
+                    customer: form,
+                    cartItems,
+                    shipping: selectedShipping,
+                    shippingCost,
+                    subtotal,
+                    total,
+                    discountCode,
+                    note,
+                    wantTaxInvoice,
+                    slipImage: slipPreview,
+                }),
+            });
+
+            const orderData = await orderRes.json().catch(() => ({}));
+            if (orderData.outOfStock) {
+                setSubmitError(orderData.error || "สินค้าหมดสต็อคครับ กรุณาลดจำนวนหรือเลือกลายอื่น");
+                setIsSending(false);
+                return;
+            }
+
+            // ส่งเป็น checkout_ ref ไป Messenger
+            const refString = `checkout_${orderNumber}`;
+
+            // Open Messenger - webhook will send the confirmation
+            const FACEBOOK_PAGE_ID = "114336388182180";
+            const messengerUrl = `https://m.me/${FACEBOOK_PAGE_ID}?ref=${encodeURIComponent(refString)}`;
+            window.location.href = messengerUrl;
+
+            // Save order to localStorage for order tracking page
+            localStorage.setItem(`hdg_order_${orderNumber}`, JSON.stringify({
+                orderNumber,
+                customer: form,
+                cartItems,
+                shipping: selectedShipping,
+                shippingCost,
+                subtotal,
+                total,
+                note,
+                createdAt: new Date().toISOString(),
+            }));
+
+            // Clear cart from localStorage & cart store
+            localStorage.removeItem("hdg_checkout_cart");
+            useCartStore.getState().clearCart();
+
+            // Save reference to prevent duplicate checkout via same link
+            const urlParams = new URLSearchParams(window.location.search);
+            const refId = urlParams.get("refId");
+            if (refId) {
+                localStorage.setItem(`hdg_purchased_ref_${refId}`, orderNumber);
+            }
+
+            setIsComplete(true);
+        } catch {
+            Swal.fire({ text: String(lang === "th" ? "เกิดข้อผิดพลาด กรุณาลองใหม่" : "Error, please try again"), icon: 'error' });
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    if (isComplete) {
+        return (
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">{t.successCheckout[lang]}</h2>
+                <p className="text-sm text-gray-500 text-center mb-6 whitespace-pre-line">
+                    {t.successCheckoutMsg[lang]}
+                </p>
+                <a
+                    href="https://www.hdgwrapskin.com"
+                    className="bg-[#4267B2] text-white px-8 py-3 rounded-lg text-sm font-medium hover:bg-[#365899] transition-colors"
+                >
+                    {t.backToShop[lang]}
+                </a>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-[#f5f5f5]">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+                <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <img 
+                            src={shopConfig.shopLogo} 
+                            alt={shopConfig.shopName}
+                            className="w-9 h-9 rounded-full flex-shrink-0 object-cover border border-gray-200"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                        <span className="text-sm font-bold text-gray-800 truncate">
+                            {shopConfig.shopName}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                        <button
+                            onClick={() => setLang(lang === "th" ? "en" : "th")}
+                            className="text-[11px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded w-[32px] text-center hover:bg-gray-200 transition-colors cursor-pointer"
+                        >
+                            {lang === "th" ? "EN" : "TH"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+                {/* ======= ชำระเงิน (Address Form) ======= */}
+                <div className="bg-white rounded-lg shadow-sm">
+                    <h2 className="text-lg font-bold text-[#8B6914] px-6 pt-5 pb-3">{t.payment[lang]}</h2>
+                    <div className="px-6 pb-6 space-y-4">
+                        <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.fullName[lang]}</label>
+                            <input type="text" value={form.name} onChange={(e) => handleChange("name", e.target.value)}
+                                className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                        </div>
+                        {showAddress && (
+                            <>
+                                <PostalCodeAutocomplete value={form.postalCode} onChange={handleChange} lang={lang} />
+                                <div className="relative">
+                                    <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.province[lang]}</label>
+                                    <input type="text" value={form.province} onChange={(e) => handleChange("province", e.target.value)}
+                                        className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                                </div>
+                                <div className="relative">
+                                    <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.district[lang]}</label>
+                                    <input type="text" value={form.district} onChange={(e) => handleChange("district", e.target.value)}
+                                        className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                                </div>
+                                <div className="relative">
+                                    <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.subdistrict[lang]}</label>
+                                    <input type="text" value={form.subdistrict} onChange={(e) => handleChange("subdistrict", e.target.value)}
+                                        className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                                </div>
+                                <div className="relative">
+                                    <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.address[lang]}</label>
+                                    <textarea value={form.address} onChange={(e) => handleChange("address", e.target.value)} rows={3}
+                                        placeholder={t.addressPlaceholder[lang]}
+                                        className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914] resize-none" />
+                                </div>
+                            </>
+                        )}
+                        {showPhone && (
+                            <div className="relative">
+                                <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.phone[lang]}</label>
+                                <input type="tel" value={form.phone} onChange={(e) => handleChange("phone", e.target.value)}
+                                    className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                            </div>
+                        )}
+                        {showEmail && (
+                            <div className="relative">
+                                <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.email[lang]}</label>
+                                <input type="email" value={form.email} onChange={(e) => handleChange("email", e.target.value)}
+                                    placeholder={t.emailPlaceholder[lang]}
+                                    className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                            </div>
+                        )}
+
+                        {/* Tax Invoice Checkbox - only if admin enabled receipt */}
+                        {showReceipt && (
+                            <>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" checked={wantTaxInvoice} onChange={(e) => setWantTaxInvoice(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-300" />
+                                    <span className="text-sm text-gray-600">{t.wantTaxInvoice[lang]}</span>
+                                </label>
+
+                                {/* Tax Invoice Fields */}
+                                {wantTaxInvoice && (
+                                    <div className="space-y-4 pt-2">
+                                        <h3 className="text-base font-bold text-[#8B6914]">{t.taxTitle[lang]}</h3>
+                                        <div className="relative">
+                                            <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">ชื่อ</label>
+                                            <input type="text" value={form.taxName} onChange={(e) => handleChange("taxName", e.target.value)}
+                                                className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                                        </div>
+                                        <div className="relative">
+                                            <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">ที่อยู่</label>
+                                            <textarea value={form.taxAddress} onChange={(e) => handleChange("taxAddress", e.target.value)} rows={3}
+                                                placeholder="บ้านเลขที่, หมู่, ซอย, และถนน"
+                                                className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914] resize-none" />
+                                        </div>
+                                        <div className="relative">
+                                            <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">หมายเลขประจำตัวผู้เสียภาษี หรือหมายเลขบัตรประชาชน</label>
+                                            <input type="text" value={form.taxId} onChange={(e) => handleChange("taxId", e.target.value)}
+                                                className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914]" />
+                                        </div>
+
+                                        {/* Receipt preview - name + signature from admin */}
+                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-3">
+                                            <p className="text-xs text-gray-500 mb-2">ตัวอย่างลายเซ็นในใบเสร็จ</p>
+                                            <div className="flex items-end justify-between">
+                                                <div>
+                                                    <p className="text-sm font-bold text-gray-700">{receiptAuthorName || "HDG"}</p>
+                                                    <p className="text-xs text-gray-400">ผู้มีอำนาจลงนาม</p>
+                                                </div>
+                                                {receiptSig && (
+                                                    <img src={receiptSig} alt="ลายเซ็น" className="h-12 object-contain" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* ======= ตัวเลือกในการจัดส่ง ======= */}
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h3 className="text-sm font-bold text-gray-700 mb-4">{t.shippingTitle[lang]}</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {SHIPPING_METHODS.map((method) => (
+                            <button
+                                key={method.id}
+                                onClick={() => setSelectedShipping(method.id)}
+                                className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all ${selectedShipping === method.id
+                                    ? "border-[#4267B2] bg-blue-50"
+                                    : "border-gray-200 hover:border-gray-300"
+                                    }`}
+                            >
+                                <div className="w-16 h-10 flex items-center justify-center mb-2">
+                                    <img 
+                                        src={method.logo} 
+                                        alt={method.name} 
+                                        className="w-full h-full object-contain"
+                                        onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).style.display = 'none'; }}
+                                    />
+                                </div>
+                                <span className="text-xs font-medium text-gray-700 text-center">{method.name}</span>
+                                <span className="text-xs text-green-600 font-bold mt-0.5">
+                                    {method.price === 0 ? t.free[lang] : `฿${method.price}`}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* ======= รายละเอียดการชำระเงิน ======= */}
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h2 className="text-lg font-bold text-[#8B6914] text-center mb-4">{t.paymentDetails[lang]}</h2>
+
+                    {/* Cart Items Dropdown */}
+                    <button
+                        onClick={() => setShowCart(!showCart)}
+                        className="w-full flex items-center justify-between border border-gray-300 rounded px-4 py-3 mb-4 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                        <span>{t.viewCart[lang]}</span>
+                        {showCart ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+
+                    {showCart && (
+                        <div className="border border-gray-200 rounded mb-4">
+                            {cartItems.length > 0 ? (
+                                <>
+                                    {pagedItems.map((item, i) => (
+                                        <div key={i} className="flex gap-4 p-4">
+                                            <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                                                <img src={item.image} alt={item.name}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.jpg"; }} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-gray-800 font-medium">
+                                                    {item.name} {item.variant && !item.name.includes(item.variant) ? `[${item.variant}]` : ''} x {item.qty}
+                                                </p>
+                                            </div>
+                                            <div className="text-sm font-bold text-[#8B6914] flex-shrink-0">
+                                                ฿{(item.price * item.qty).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {/* Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-center gap-2 py-3 border-t border-gray-100">
+                                            <button onClick={() => setCartPage(Math.max(1, cartPage - 1))}
+                                                className="w-7 h-7 rounded border border-gray-300 flex items-center justify-center text-gray-400 hover:bg-gray-50"
+                                                disabled={cartPage === 1}>
+                                                <ChevronLeft className="w-3.5 h-3.5" />
+                                            </button>
+                                            <span className="w-7 h-7 rounded bg-[#4267B2] text-white flex items-center justify-center text-xs font-bold">
+                                                {cartPage}
+                                            </span>
+                                            <button onClick={() => setCartPage(Math.min(totalPages, cartPage + 1))}
+                                                className="w-7 h-7 rounded border border-gray-300 flex items-center justify-center text-gray-400 hover:bg-gray-50"
+                                                disabled={cartPage === totalPages}>
+                                                <ChevronRight className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="p-4 text-sm text-gray-400 text-center">{t.emptyCart[lang]}</div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Price Summary */}
+                    <div className="space-y-2 text-sm mb-4">
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">{t.price[lang]}</span>
+                            <span className="text-[#8B6914] font-bold">
+                                ฿{subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                        {discountAmount > 0 && (
+                            <div className="flex justify-between text-green-600">
+                                <span>ส่วนลด ({discountResult?.message})</span>
+                                <span className="font-bold">-฿{discountAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">{t.shippingCost[lang]}</span>
+                            <span className="text-gray-600">{freeShipping ? t.freeByCode[lang] : finalShipping === 0 ? t.freeShipping[lang] : `฿${finalShipping}`}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-200 pt-2">
+                            <span className="font-bold text-gray-800">{t.total[lang]}</span>
+                            <span className="font-bold text-[#8B6914]">
+                                ฿{total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Discount Code */}
+                    <div className="flex gap-2 mb-2">
+                        <input type="text" placeholder={t.discountCode[lang]} value={discountCode}
+                            onChange={(e) => { setDiscountCode(e.target.value); setDiscountResult(null); }}
+                            onKeyDown={(e) => e.key === "Enter" && handleApplyDiscount()}
+                            className="flex-1 border border-gray-300 rounded px-4 py-2.5 text-sm focus:outline-none focus:border-[#8B6914]" />
+                        <button onClick={handleApplyDiscount} className="bg-gray-200 text-gray-600 px-4 py-2.5 rounded text-sm font-medium hover:bg-gray-300 transition-colors">
+                            {t.applyCode[lang]}
+                        </button>
+                    </div>
+                    {discountResult && (
+                        <p className={`text-xs mb-2 ${discountResult.valid ? "text-green-600" : "text-red-500"}`}>
+                            {discountResult.valid ? `✅ ${discountResult.message}` : `❌ ${discountResult.message}`}
+                        </p>
+                    )}
+                    <button className="text-sm text-[#4267B2] underline mb-4 block mx-auto">{t.hasDiscountCode[lang]}</button>
+
+                    {/* Notes */}
+                    <div className="relative mb-6">
+                        <label className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-400">{t.note[lang]}</label>
+                        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3}
+                            className="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#8B6914] resize-none" />
+                    </div>
+                </div>
+
+                {/* ======= Payment Methods from Admin ======= */}
+                <div className="bg-white rounded-lg shadow-sm p-6">
+
+                    {/* โอนเงินผ่านธนาคาร */}
+                    {paymentMethods.find(m => m.id === "bank")?.enabled && (
+                        <>
+                            <h2 className="text-base font-bold text-gray-700 text-center mb-4 flex items-center justify-center gap-2">
+                                {t.bankTransfer[lang]}
+                            </h2>
+
+                            {/* Bank Transfer Banner */}
+                            <div className="bg-gradient-to-r from-[#1a3a6b] to-[#2a5298] rounded-lg p-6 text-center mb-4">
+                                <p className="text-white text-2xl font-bold mb-1">{t.bankTransferChannelLine1[lang]}</p>
+                                <p className="text-white text-2xl font-bold">{t.bankTransferChannelLine2[lang]}</p>
+                            </div>
+
+                            {/* Bank Account Info */}
+                            {(() => {
+                                const bank = banks.find(b => b.name === bankAccount.bankName) || banks[0];
+                                return (
+                                    <div 
+                                        style={{ background: bank.color }}
+                                        className="rounded-lg p-5 flex items-center gap-4 mb-4 shadow-md"
+                                    >
+                                        <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center flex-shrink-0 p-2 shadow-sm">
+                                            <img src={bank.logo} alt={bank.name} className="w-full h-full object-contain" />
+                                        </div>
+                                        <div className="text-white">
+                                            <p className="text-xs opacity-90 mb-0.5">{t.bankPrefix[lang]} {bank.name}</p>
+                                            <p className="text-sm font-medium mb-1">{t.accountName[lang]} : <span className="font-bold">{bankAccount.accountName}</span></p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-lg font-bold tracking-wider">{bankAccount.accountNumber}</p>
+                                                <button 
+                                                    onClick={() => navigator.clipboard.writeText(bankAccount.accountNumber.replace(/-/g, ''))}
+                                                    className="bg-white/20 hover:bg-white/30 text-white text-[10px] px-2 py-0.5 rounded transition-colors"
+                                                >
+                                                    {t.copyBtn[lang]}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            {/* Transfer Instructions */}
+                            <div className="bg-gray-100 rounded-lg p-4 text-center mb-4">
+                                <p className="text-sm text-gray-700 whitespace-pre-line">
+                                    {t.transferInstructions[lang]}
+                                </p>
+                            </div>
+
+                            <p className="text-xs text-gray-500 text-center mb-4">
+                                {t.transferDeadline[lang]}
+                            </p>
+                        </>
+                    )}
+
+                    {/* พร้อมเพย์ */}
+                    {paymentMethods.find(m => m.id === "promptpay")?.enabled && (
+                        <div className="mb-4">
+                            <h2 className="text-base font-bold text-gray-700 text-center mb-4 flex items-center justify-center gap-2">
+                                {t.promptPay[lang]}
+                            </h2>
+                            {promptPayQR && (
+                                <div className="flex justify-center mb-3">
+                                    <img src={promptPayQR} alt="PromptPay QR" className="max-w-xs rounded-lg border border-gray-200" />
+                                </div>
+                            )}
+                            <div className="bg-gray-100 rounded-lg p-4 text-center">
+                                <p className="text-sm text-gray-700">{t.scanQR[lang]}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* เก็บเงินปลายทาง */}
+                    {paymentMethods.find(m => m.id === "cod")?.enabled && (
+                        <div className="mb-4">
+                            <h2 className="text-base font-bold text-gray-700 text-center mb-4 flex items-center justify-center gap-2">
+                                {t.cod[lang]}
+                            </h2>
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                <p className="text-sm text-green-700">{t.codDesc[lang]}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ถ้าไม่มี payment method เปิดเลย */}
+                    {!paymentMethods.some(m => m.enabled) && (
+                        <div className="text-center text-sm text-gray-400 py-4">
+                            {t.noPayment[lang]}
+                        </div>
+                    )}
+
+                    {/* Upload Slip Section */}
+                    <div className={`border rounded-lg p-5 mb-4 ${showSlipWarning && !slipAttached ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}>
+                        <h3 className="text-sm font-bold text-gray-800 mb-3">{t.slipTitle[lang]}</h3>
+                        <div className="flex flex-col items-center gap-2">
+                            <label className="cursor-pointer bg-[#4267B2] text-white px-6 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-[#365899] transition-colors">
+                                {t.attachSlip[lang]}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            if (file.size > 5 * 1024 * 1024) {
+                                                setSubmitError(lang === "th" ? "⚠️ ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ขนาดไม่เกิน 5MB" : "⚠️ File too large. Max size is 5MB.");
+                                                return;
+                                            }
+                                            setSubmitError("");
+                                            setSlipAttached(true);
+                                            setSlipName(file.name);
+                                            setShowSlipWarning(false);
+                                            
+                                            // Compress image using canvas
+                                            const img = new window.Image();
+                                            const objectUrl = URL.createObjectURL(file);
+                                            img.onload = () => {
+                                                const maxW = 1200;
+                                                const scale = Math.min(1, maxW / img.width);
+                                                const canvas = document.createElement("canvas");
+                                                canvas.width = img.width * scale;
+                                                canvas.height = img.height * scale;
+                                                const ctx = canvas.getContext("2d");
+                                                ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                                const compressed = canvas.toDataURL("image/jpeg", 0.80);
+                                                setSlipPreview(compressed);
+                                                URL.revokeObjectURL(objectUrl);
+                                            };
+                                            img.src = objectUrl;
+                                        }
+                                    }}
+                                />
+                            </label>
+                            {slipAttached ? (
+                                <>
+                                    <p className="text-xs text-green-600 font-medium flex items-center gap-1">✅ {slipName}</p>
+                                    {slipPreview && <img src={slipPreview} alt="สลิป" className="max-w-xs max-h-48 rounded-lg border border-gray-200 mt-2" />}
+                                </>
+                            ) : (
+                                <p className="text-[10px] text-gray-400">{t.fileSizeLg[lang]}</p>
+                            )}
+                            {showSlipWarning && !slipAttached && (
+                                <p className="text-sm text-red-500 font-medium mt-1">{t.slipRequired[lang]}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Terms */}
+                    <p className="text-[11px] text-gray-400 text-center mb-4">
+                        {t.termsPrefix[lang]}<br />
+                        <a href="#" className="text-[#4267B2] underline">{t.termsLink[lang]}</a>
+                    </p>
+
+                    {/* Submit Button */}
+                    <button
+                        onClick={() => {
+                            if (!slipAttached) {
+                                setShowSlipWarning(true);
+                                return;
+                            }
+                            handleSubmit();
+                        }}
+                        disabled={isSending}
+                        className={`w-full py-3.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-60 ${slipAttached
+                            ? 'bg-[#4267B2] text-white hover:bg-[#365899]'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                    >
+                        <ShoppingCart className="w-4 h-4" />
+                        {isSending ? t.submitting[lang] : t.submitBtn[lang]}
+                    </button>
+
+                    {/* Inline stock/submit error */}
+                    {submitError && (
+                        <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600 text-center font-medium">
+                            ⚠️ {submitError}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

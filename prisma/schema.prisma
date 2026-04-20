@@ -1,0 +1,530 @@
+// ═══════════════════════════════════════════════════════════════
+// Prisma Schema — Unified Chat Dashboard
+// ═══════════════════════════════════════════════════════════════
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────
+
+enum ChannelType {
+  MESSENGER
+  INSTAGRAM
+  LINE
+  WHATSAPP
+  ZALO
+}
+
+enum ConversationStatus {
+  OPEN
+  ASSIGNED
+  RESOLVED
+  ARCHIVED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  NOTE
+}
+
+enum AgentRole {
+  ADMIN
+  AGENT
+}
+
+enum SendStatus {
+  PENDING
+  SENT
+  FAILED
+  RETRYING
+}
+
+// ─── Channel ─────────────────────────────────────────────────
+
+model Channel {
+  id        String      @id @default(uuid())
+  type      ChannelType
+  name      String
+  config    Json        @default("{}")
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  contacts      Contact[]
+  conversations Conversation[]
+
+  @@map("channels")
+}
+
+// ─── Contact ─────────────────────────────────────────────────
+
+model Contact {
+  id                String   @id @default(uuid())
+  channelId         String   @map("channel_id")
+  platformContactId String   @map("platform_contact_id")
+  displayName       String   @map("display_name")
+  avatarUrl         String?  @map("avatar_url")
+  email             String?
+  phone             String?
+  metadata          Json     @default("{}")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  channel       Channel        @relation(fields: [channelId], references: [id])
+  conversations Conversation[]
+  orders        Order[]
+
+  @@unique([channelId, platformContactId])
+  @@map("contacts")
+}
+
+// ─── Agent ───────────────────────────────────────────────────
+
+model Agent {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  role         AgentRole @default(AGENT)
+  avatarUrl    String?   @map("avatar_url")
+  isOnline     Boolean   @default(false) @map("is_online")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  assignedConversations Conversation[]
+  messages              Message[]
+  notes                 Note[]
+  orders                Order[]
+
+  @@map("agents")
+}
+
+// ─── Conversation ────────────────────────────────────────────
+
+model Conversation {
+  id                 String             @id @default(uuid())
+  channelId          String             @map("channel_id")
+  contactId          String             @map("contact_id")
+  assignedAgentId    String?            @map("assigned_agent_id")
+  status             ConversationStatus @default(OPEN)
+  isStarred          Boolean            @default(false) @map("is_starred")
+  isSpam             Boolean            @default(false) @map("is_spam")
+  lastMessageAt      DateTime           @default(now()) @map("last_message_at")
+  lastMessagePreview String?            @map("last_message_preview")
+  unreadCount        Int                @default(0) @map("unread_count")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  channel       Channel  @relation(fields: [channelId], references: [id])
+  contact       Contact  @relation(fields: [contactId], references: [id])
+  assignedAgent Agent?   @relation(fields: [assignedAgentId], references: [id])
+  messages      Message[]
+  tags          ConversationTag[]
+  notes         Note[]
+  orders        Order[]
+
+  @@index([status])
+  @@index([channelId])
+  @@index([lastMessageAt(sort: Desc)])
+  @@map("conversations")
+}
+
+// ─── Message ─────────────────────────────────────────────────
+
+model Message {
+  id                String           @id @default(uuid())
+  conversationId    String           @map("conversation_id")
+  direction         MessageDirection
+  type              MessageType      @default(TEXT)
+  content           String
+  imageUrl          String?          @map("image_url")
+  platformMessageId String?          @map("platform_message_id")
+  sendStatus        SendStatus       @default(SENT) @map("send_status")
+  senderName        String?          @map("sender_name")
+  senderAgentId     String?          @map("sender_agent_id")
+  rawPayload        Json?            @map("raw_payload")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  senderAgent  Agent?       @relation(fields: [senderAgentId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@unique([platformMessageId])
+  @@map("messages")
+}
+
+// ─── Tag ─────────────────────────────────────────────────────
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String   @default("#6B7280")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  conversations ConversationTag[]
+
+  @@map("tags")
+}
+
+// ─── Conversation ↔ Tag (Many-to-Many) ──────────────────────
+
+model ConversationTag {
+  conversationId String @map("conversation_id")
+  tagId          String @map("tag_id")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  tag          Tag          @relation(fields: [tagId], references: [id])
+
+  @@id([conversationId, tagId])
+  @@map("conversation_tags")
+}
+
+// ─── Note ────────────────────────────────────────────────────
+
+model Note {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  agentId        String   @map("agent_id")
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  agent        Agent        @relation(fields: [agentId], references: [id])
+
+  @@index([conversationId])
+  @@map("notes")
+}
+
+// ─── Canned Reply ────────────────────────────────────────────
+
+model CannedReply {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  shortcut  String   @unique
+  category  String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("canned_replies")
+}
+
+// ─── Webhook Log ─────────────────────────────────────────────
+
+model WebhookLog {
+  id          String           @id @default(uuid())
+  channelType ChannelType      @map("channel_type")
+  direction   MessageDirection
+  payload     Json
+  dedupKey    String?          @unique @map("dedup_key")
+  processedAt DateTime?        @map("processed_at")
+  error       String?
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  @@index([channelType, createdAt])
+  @@map("webhook_logs")
+}
+
+// ─── Order Status ────────────────────────────────────────────
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ─── Order ───────────────────────────────────────────────────
+
+model Order {
+  id               String      @id @default(uuid())
+  orderNumber      String      @unique @map("order_number")
+  conversationId   String?     @map("conversation_id")
+  contactId        String      @map("contact_id")
+  agentId          String      @map("agent_id")
+  status           OrderStatus @default(DRAFT)
+  subtotal         Decimal     @default(0) @db.Decimal(12, 2)
+  discount         Decimal     @default(0) @db.Decimal(12, 2)
+  shippingCost     Decimal     @default(0) @db.Decimal(12, 2) @map("shipping_cost")
+  total            Decimal     @default(0) @db.Decimal(12, 2)
+  customerName     String      @map("customer_name")
+  customerPhone    String?     @map("customer_phone")
+  customerAddress  String?     @map("customer_address")
+  note             String?
+  shippingMethod   String?     @map("shipping_method")
+  paymentMethod    String?     @map("payment_method")
+  paymentSlipUrl   String?     @map("payment_slip_url")
+  paymentToken     String?     @unique @map("payment_token")
+  paidAt           DateTime?   @map("paid_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  conversation Conversation? @relation(fields: [conversationId], references: [id])
+  contact      Contact       @relation(fields: [contactId], references: [id])
+  agent        Agent         @relation(fields: [agentId], references: [id])
+  items        OrderItem[]
+
+  @@index([status])
+  @@index([contactId])
+  @@index([createdAt(sort: Desc)])
+  @@map("orders")
+}
+
+// ─── Order Item ──────────────────────────────────────────────
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String  @map("order_id")
+  name      String
+  quantity  Int     @default(1)
+  unitPrice Decimal @db.Decimal(12, 2) @map("unit_price")
+  total     Decimal @db.Decimal(12, 2)
+  image     String? @db.Text
+  variant   String?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+// ─── E-commerce Order (Stand-alone for Sale Page) ────────────
+
+model EcommerceOrder {
+  id               String   @id @default(uuid())
+  orderNumber      String   @unique @map("order_number")
+  shopId           String?  @map("shop_id")              // Link to tenant shop
+  customerData     Json     @map("customer_data")
+  itemsData        Json     @map("items_data")
+  itemCount        Int      @default(0) @map("item_count")
+  subtotal         Decimal  @default(0) @db.Decimal(12, 2)
+  shipping         String
+  shippingCost     Decimal  @default(0) @db.Decimal(12, 2) @map("shipping_cost")
+  total            Decimal  @default(0) @db.Decimal(12, 2)
+  payment          String
+  status           String   @default("pending") // pending, confirmed, shipped, completed, cancelled
+  note             String?
+  discountCode     String?  @map("discount_code")
+  wantTaxInvoice   Boolean  @default(false) @map("want_tax_invoice")
+  taxName          String?  @map("tax_name")
+  taxAddress       String?  @map("tax_address")
+  taxId            String?  @map("tax_id")
+  trackingNumber   String?  @map("tracking_number")
+  shippingProvider String?  @map("shipping_provider")
+  facebookId       String?  @map("facebook_id")
+  facebookName     String?  @map("facebook_name")
+  facebookPsid     String?  @map("facebook_psid")
+  paymentSlipUrl   String?  @map("payment_slip_url") @db.Text  // base64 หรือ URL สลิปจากลูกค้า
+  paidAt           DateTime? @map("paid_at")
+  followUpSentAt   DateTime? @map("follow_up_sent_at")           // ส่ง remind แล้วหรือยัง
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  shop             Shop?    @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("ecommerce_orders")
+}
+
+// ─── Tenant (ผู้เช่าร้าน) ────────────────────────────────────
+
+model Tenant {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String                              // ชื่อเจ้าของร้าน
+  phone         String?
+  avatarUrl     String?   @map("avatar_url")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  shops         Shop[]
+  subscription  Subscription?
+  invoices      Invoice[]
+
+  @@map("tenants")
+}
+
+// ─── Subscription Plan ───────────────────────────────────────
+
+model Plan {
+  id            String   @id @default(uuid())
+  name          String                              // ฟรี, เริ่มต้น, โปร, พรีเมียม
+  slug          String   @unique                    // free, starter, pro, premium
+  price         Decimal  @db.Decimal(12, 2)         // ราคา/เดือน (THB)
+  maxProducts   Int      @map("max_products")       // จำนวนสินค้าสูงสุด
+  maxShops      Int      @default(1) @map("max_shops")
+  features      Json     @default("[]")             // ฟีเจอร์พิเศษ ["chatbot", "broadcast", ...]
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+// ─── Subscription ────────────────────────────────────────────
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  TRIAL
+}
+
+model Subscription {
+  id            String             @id @default(uuid())
+  tenantId      String             @unique @map("tenant_id")
+  planId        String             @map("plan_id")
+  status        SubscriptionStatus @default(ACTIVE)
+  startDate     DateTime           @default(now()) @map("start_date")
+  endDate       DateTime           @map("end_date")
+  autoRenew     Boolean            @default(true) @map("auto_renew")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan          Plan     @relation(fields: [planId], references: [id])
+
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// ─── Invoice (ใบเรียกเก็บเงิน) ───────────────────────────────
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique @map("invoice_number")
+  tenantId      String        @map("tenant_id")
+  amount        Decimal       @db.Decimal(12, 2)
+  status        InvoiceStatus @default(PENDING)
+  description   String?
+  paymentMethod String?       @map("payment_method")
+  paymentSlip   String?       @map("payment_slip")   // URL ของสลิป
+  paidAt        DateTime?     @map("paid_at")
+  dueDate       DateTime      @map("due_date")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("invoices")
+}
+
+// ─── Shop (Multi-tenant store) ───────────────────────────────
+
+model Shop {
+  id             String   @id @default(uuid())
+  tenantId       String?  @map("tenant_id")           // nullable for backward compat
+  pageId         String   @unique @map("page_id")     // Facebook Page ID or auto-generated
+  slug           String   @unique                     // URL-friendly: /shop/my-store
+  name           String
+  description    String?
+  logo           String?
+  bannerImages   Json     @default("[]") @map("banner_images")   // String[] แบนเนอร์
+  currency       String   @default("THB")
+  currencySymbol String   @default("฿") @map("currency_symbol")
+  themeColor     String?  @map("theme_color")
+  socialLinks    Json     @default("{}") @map("social_links")     // { line, facebook, instagram, ... }
+  paymentConfig  Json     @default("{}") @map("payment_config")   // { bankAccounts, promptpay, ... }
+  shippingConfig Json     @default("{}") @map("shipping_config")  // { methods, freeAbove, ... }
+  chatbotConfig  Json     @default("{}") @map("chatbot_config")   // { greeting, faq, outOfHours, auto, ... }
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products   ShopProduct[]
+  categories ShopCategory[]
+  textures   ShopTexture[]
+  orders     EcommerceOrder[]
+
+  @@index([tenantId])
+  @@map("shops")
+}
+
+model ShopCategory {
+  id       String @id @default(uuid())
+  shopId   String @map("shop_id")
+  name     String
+  nameEn   String @map("name_en")
+  sortOrder Int   @default(0) @map("sort_order")
+
+  shop     Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  products ShopProduct[]
+
+  @@index([shopId])
+  @@map("shop_categories")
+}
+
+model ShopTexture {
+  id        String   @id @default(uuid())
+  shopId    String   @map("shop_id")
+  series    String   @default("Default")
+  code      String   @default("")
+  name      String
+  image     String   @db.Text
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@map("shop_textures")
+}
+
+
+model ShopProduct {
+  id          String  @id @default(uuid())
+  shopId      String  @map("shop_id")
+  categoryId  String? @map("category_id")
+  name        String
+  description String?
+  price       Decimal @db.Decimal(12, 2)
+  images      Json    @default("[]")       // String[]
+  variants    Json    @default("[]")       // { id, name, price, stock, image? }[]
+  badge       String?
+  isActive    Boolean @default(true) @map("is_active")
+  sortOrder   Int     @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  shop     Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  category ShopCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([shopId])
+  @@index([categoryId])
+  @@map("shop_products")
+}

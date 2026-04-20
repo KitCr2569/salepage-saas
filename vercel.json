@@ -1,0 +1,13 @@
+{
+  "regions": ["icn1"],
+  "crons": [
+    {
+      "path": "/api/cron/expire-orders",
+      "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron/migrate-neon",
+      "schedule": "0 18 * * *"
+    }
+  ]
+}

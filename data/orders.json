@@ -1,0 +1,227 @@
+[
+  {
+    "id": "ORD-0008",
+    "customer": "นายสมศักดิ์ มั่นคง",
+    "phone": "081-234-5678",
+    "email": "",
+    "address": "",
+    "items": [
+      {
+        "productId": "",
+        "name": "SONY A7C",
+        "variantId": "",
+        "variantName": "",
+        "quantity": 1,
+        "price": 790,
+        "image": ""
+      }
+    ],
+    "itemCount": 1,
+    "total": 890,
+    "shipping": "จัดส่งด่วน",
+    "shippingCost": 100,
+    "payment": "พร้อมเพย์",
+    "status": "pending",
+    "date": "2026-03-10T15:43:03.929Z",
+    "note": "[จากรวมแชท ORD-20260310-700]"
+  },
+  {
+    "id": "ORD-0007",
+    "customer": "นายสมศักดิ์ มั่นคง",
+    "phone": "081-234-5678",
+    "email": "",
+    "address": "",
+    "items": [
+      {
+        "productId": "",
+        "name": "SONY A7C (CDBK)",
+        "variantId": "",
+        "variantName": "",
+        "quantity": 1,
+        "price": 790,
+        "image": ""
+      },
+      {
+        "productId": "",
+        "name": "Canon 6D (MBSN)",
+        "variantId": "",
+        "variantName": "",
+        "quantity": 1,
+        "price": 890,
+        "image": ""
+      }
+    ],
+    "itemCount": 2,
+    "total": 2000,
+    "shipping": "จัดส่งปกติ",
+    "shippingCost": 500,
+    "payment": "",
+    "status": "pending",
+    "date": "2026-03-10T15:36:13.494Z",
+    "note": "[จากรวมแชท ORD-20260310-319]"
+  },
+  {
+    "id": "ORD-0006",
+    "customer": "นายสมศักดิ์ มั่นคง",
+    "phone": "081-234-5678",
+    "email": "",
+    "address": "",
+    "items": [
+      {
+        "productId": "",
+        "name": "SONY A7C (WASV)",
+        "variantId": "",
+        "variantName": "",
+        "quantity": 1,
+        "price": 790,
+        "image": ""
+      }
+    ],
+    "itemCount": 1,
+    "total": 790,
+    "shipping": "",
+    "shippingCost": 0,
+    "payment": "",
+    "status": "pending",
+    "date": "2026-03-10T15:22:18.320Z",
+    "note": "[จากรวมแชท ORD-20260310-321]"
+  },
+  {
+    "id": "ORD-0005",
+    "customer": "ทดสอบ สั่งซื้อ",
+    "phone": "0812345678",
+    "email": "",
+    "address": "123/45 ถ.สุขุมวิท, คลองเตย, วัฒนา, กรุงเทพมหานคร 10110",
+    "items": [
+      {
+        "productId": "sony-a7iii",
+        "name": "SONY A7III/A7RIII",
+        "variantId": "CDBK",
+        "variantName": "CDBK",
+        "quantity": 1,
+        "price": 890,
+        "image": "https://zwizai.s3.amazonaws.com/ecommerce/1712103588773a7iii.png"
+      }
+    ],
+    "itemCount": 1,
+    "total": 940,
+    "shipping": "จัดส่งมาตรฐาน",
+    "shippingCost": 50,
+    "payment": "โอนเงินผ่านธนาคาร",
+    "status": "pending",
+    "date": "2026-03-01T20:15:01.431Z",
+    "note": ""
+  },
+  {
+    "id": "ORD-0004",
+    "customer": "ทดสอบ สั่งซื้อ",
+    "phone": "0812345678",
+    "email": "",
+    "address": "123/45 ถ.สุขุมวิท, คลองเตย, วัฒนา, กรุงเทพมหานคร 10110",
+    "items": [
+      {
+        "productId": "canon-6d",
+        "name": "Canon 6D",
+        "variantId": "CDBK",
+        "variantName": "CDBK",
+        "quantity": 1,
+        "price": 890,
+        "image": "https://zwizai.s3.amazonaws.com/ecommerce/17121033150026d.png"
+      }
+    ],
+    "itemCount": 1,
+    "total": 940,
+    "facebookId": "6055545721205010",
+    "facebookName": "Kittichai Bunsook",
+    "shipping": "จัดส่งมาตรฐาน",
+    "shippingCost": 50,
+    "payment": "โอนเงินผ่านธนาคาร",
+    "status": "pending",
+    "date": "2026-03-01T19:42:06.688Z",
+    "note": ""
+  },
+  {
+    "id": "ORD-0003",
+    "customer": "ทดสอบ สั่งซื้อ",
+    "phone": "0812345678",
+    "email": "",
+    "address": "123/45 ถ.สุขุมวิท, คลองเตย, วัฒนา, กรุงเทพมหานคร 10110",
+    "items": [
+      {
+        "productId": "sony-a7c",
+        "name": "SONY A7C",
+        "variantId": "CDBK",
+        "variantName": "CDBK",
+        "quantity": 1,
+        "price": 790,
+        "image": "https://zwizai.s3.amazonaws.com/ecommerce/1712103502814a7c.png"
+      }
+    ],
+    "itemCount": 1,
+    "total": 840,
+    "facebookId": "6055545721205010",
+    "facebookName": "Kittichai Bunsook",
+    "shipping": "จัดส่งมาตรฐาน",
+    "shippingCost": 50,
+    "payment": "โอนเงินผ่านธนาคาร",
+    "status": "pending",
+    "date": "2026-03-01T19:41:20.161Z",
+    "note": ""
+  },
+  {
+    "id": "ORD-0002",
+    "customer": "ทดสอบ สั่งซื้อ",
+    "phone": "0812345678",
+    "email": "",
+    "address": "123/45 ถ.สุขุมวิท, คลองเตย, วัฒนา, กรุงเทพมหานคร 10110",
+    "items": [
+      {
+        "productId": "canon-6d",
+        "name": "Canon 6D",
+        "variantId": "CDBK",
+        "variantName": "CDBK",
+        "quantity": 2,
+        "price": 890,
+        "image": "https://zwizai.s3.amazonaws.com/ecommerce/17121033150026d.png"
+      }
+    ],
+    "itemCount": 1,
+    "total": 1830,
+    "facebookId": "6055545721205010",
+    "facebookName": "Kittichai Bunsook",
+    "shipping": "จัดส่งมาตรฐาน",
+    "shippingCost": 50,
+    "payment": "โอนเงินผ่านธนาคาร",
+    "status": "pending",
+    "date": "2026-03-01T19:31:17.979Z",
+    "note": ""
+  },
+  {
+    "id": "ORD-0001",
+    "customer": "ทดสอบ สั่งซื้อ",
+    "phone": "0812345678",
+    "email": "",
+    "address": "123/45 ถ.สุขุมวิท, คลองเตย, วัฒนา, กรุงเทพมหานคร 10110",
+    "items": [
+      {
+        "productId": "sony-a7c",
+        "name": "SONY A7C",
+        "variantId": "CDBK",
+        "variantName": "CDBK",
+        "quantity": 1,
+        "price": 790,
+        "image": "https://zwizai.s3.amazonaws.com/ecommerce/1712103502814a7c.png"
+      }
+    ],
+    "itemCount": 1,
+    "total": 840,
+    "facebookId": "6055545721205010",
+    "facebookName": "Kittichai Bunsook",
+    "shipping": "จัดส่งมาตรฐาน",
+    "shippingCost": 50,
+    "payment": "โอนเงินผ่านธนาคาร",
+    "status": "completed",
+    "date": "2026-03-01T19:15:46.106Z",
+    "note": ""
+  }
+]

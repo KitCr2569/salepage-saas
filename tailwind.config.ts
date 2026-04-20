@@ -1,0 +1,85 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50:  "#F5F0FF",
+          100: "#EDE0FF",
+          200: "#D4BBFE",
+          300: "#B991FD",
+          400: "#9F67F5",
+          500: "#7C3AED",
+          600: "#6025C8",
+          700: "#4A1A9E",
+          800: "#341275",
+          900: "#1E0A4B",
+        },
+        brand: {
+          50:  '#F5F0FF',
+          100: '#EDE0FF',
+          200: '#D4BBFE',
+          300: '#B991FD',
+          400: '#9F67F5',
+          500: '#7C3AED',
+          600: '#6025C8',
+          700: '#4A1A9E',
+          800: '#341275',
+          900: '#1E0A4B',
+          950: '#0F0523',
+        },
+        surface: {
+          50:  "#F0EEFF",
+          100: "#D9D4F7",
+          200: "#9B8FCC",
+          300: "#6B5FA3",
+          400: "#4B4080",
+          500: "#2E2661",
+          600: "#1F1A42",
+          700: "#171330",
+          800: '#0F0F23',
+          900: '#0A0A1A',
+          950: '#050510',
+        },
+        accent: {
+          400: '#67E8F9',
+          500: '#06B6D4',
+          600: '#0891B2',
+        },
+      },
+      fontFamily: {
+        sans: ["var(--font-sarabun)", "system-ui", "sans-serif"],
+      },
+      animation: {
+        "slide-up":       "slideUp 0.3s ease-out",
+        "slide-down":     "slideDown 0.3s ease-out",
+        "fade-in":        "fadeIn 0.2s ease-out",
+        "scale-in":       "scaleIn 0.2s ease-out",
+        "slide-in-right": "slideInRight 0.3s ease-out",
+        "bounce-subtle":  "bounceSubtle 0.4s ease-out",
+        "slide-in":       "slideIn 0.3s ease-out",
+        "pulse-dot":      "pulseDot 2s ease-in-out infinite",
+        "shimmer":        "shimmer 2s linear infinite",
+      },
+      keyframes: {
+        slideUp:       { "0%": { transform: "translateY(100%)", opacity: "0" }, "100%": { transform: "translateY(0)", opacity: "1" } },
+        slideDown:     { "0%": { transform: "translateY(-20px)", opacity: "0" }, "100%": { transform: "translateY(0)", opacity: "1" } },
+        fadeIn:        { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
+        scaleIn:       { "0%": { transform: "scale(0.95)", opacity: "0" }, "100%": { transform: "scale(1)", opacity: "1" } },
+        slideInRight:  { "0%": { transform: "translateX(100%)" }, "100%": { transform: "translateX(0)" } },
+        bounceSubtle:  { "0%": { transform: "scale(1)" }, "50%": { transform: "scale(1.15)" }, "100%": { transform: "scale(1)" } },
+        slideIn:       { '0%': { transform: 'translateX(-10px)', opacity: '0' }, '100%': { transform: 'translateX(0)', opacity: '1' } },
+        pulseDot:      { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } },
+        shimmer:       { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
