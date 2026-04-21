@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getFacebookPageConfig } from '@/lib/facebook';
+import { getShopFromRequest, clearShopCache } from '@/lib/tenant';
 
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
     try {
-        const shop = await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
+        const { shop } = await getShopFromRequest(req);
         if (!shop) return NextResponse.json({ success: false, error: "No shop found" });
 
         const config = shop.chatbotConfig || {
@@ -55,7 +56,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const shop = await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
+        const { shop } = await getShopFromRequest(req);
         if (!shop) return NextResponse.json({ success: false, error: "No shop found" });
 
         await prisma.shop.update({

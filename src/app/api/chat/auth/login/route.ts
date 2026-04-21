@@ -50,7 +50,32 @@ const MOCK_AGENTS = [
 ];
 
 async function loginWithDatabase(email: string, password: string) {
+    // 1. Check Tenant (Shop Owner)
+    const tenant = await prisma.tenant.findUnique({
+        where: { email },
+    });
+    
+    if (tenant) {
+        const passwordValid = await verifyPassword(password, tenant.passwordHash);
+        if (passwordValid) {
+            // Get first shop as default
+            const firstShop = await prisma.shop.findFirst({
+                where: { tenantId: tenant.id },
+                orderBy: { createdAt: 'asc' }
+            });
+            return {
+                id: tenant.id,
+                email: tenant.email,
+                name: tenant.name,
+                role: 'ADMIN',
+                avatarUrl: tenant.avatarUrl,
+                tenantId: tenant.id,
+                shopId: firstShop?.id || undefined,
+            };
+        }
+    }
 
+    // 2. Check Agent (Staff)
     const agent = await prisma.agent.findUnique({
         where: { email },
     });
@@ -85,6 +110,7 @@ async function loginWithDatabase(email: string, password: string) {
         name: agent.name,
         role: agent.role,
         avatarUrl: agent.avatarUrl,
+        shopId: agent.shopId || undefined,
     };
 }
 
@@ -130,7 +156,9 @@ export async function POST(request: NextRequest) {
             sub: agent.id,
             email: agent.email,
             name: agent.name,
-            role: agent.role,
+            role: agent.role as any,
+            tenantId: (agent as any).tenantId,
+            shopId: (agent as any).shopId,
         });
 
         logger.info('Auth', `Login successful for ${email} (role: ${agent.role})`);

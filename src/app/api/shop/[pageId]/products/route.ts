@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkProductLimit } from "@/lib/plan-limits";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,25 @@ export async function POST(
             shop = await prisma.shop.create({
                 data: { pageId, name: pageId, slug: `shop-${pageId.slice(-8)}-${Date.now().toString(36)}` },
             });
+        }
+
+        // ── Plan limit check ──────────────────────────────
+        const limitCheck = await checkProductLimit(shop.id);
+        if (!limitCheck.allowed) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `เกินจำนวนสินค้าที่แพ็กเกจ "${limitCheck.planName}" อนุญาต (${limitCheck.current}/${limitCheck.max})`,
+                    errorEn: `Product limit reached for "${limitCheck.planName}" plan (${limitCheck.current}/${limitCheck.max})`,
+                    upgradeRequired: true,
+                    usage: {
+                        current: limitCheck.current,
+                        max: limitCheck.max,
+                        plan: limitCheck.planSlug,
+                    },
+                },
+                { status: 403 }
+            );
         }
 
         // Get max sortOrder

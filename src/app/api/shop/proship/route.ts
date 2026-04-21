@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "super-secret-jwt-key";
+import { getShopFromRequest, clearShopCache } from '@/lib/tenant';
 
 // GET Proship config
 export async function GET(request: NextRequest) {
     try {
-        const shop = await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
-
+        const { shop } = await getShopFromRequest(request);
         if (!shop) return NextResponse.json({ success: false, error: "Shop not found" }, { status: 404 });
 
         const config = (shop.shippingConfig as any)?.proship || {};
@@ -21,8 +18,7 @@ export async function GET(request: NextRequest) {
 // POST update Proship config
 export async function POST(request: NextRequest) {
     try {
-        const shop = await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
-
+        const { shop } = await getShopFromRequest(request);
         if (!shop) return NextResponse.json({ success: false, error: "Shop not found" }, { status: 404 });
 
         const body = await request.json();
@@ -39,6 +35,7 @@ export async function POST(request: NextRequest) {
             data: { shippingConfig: existingConfig }
         });
 
+        clearShopCache();
         return NextResponse.json({ success: true });
     } catch (e: any) {
         return NextResponse.json({ success: false, error: e.message }, { status: 500 });

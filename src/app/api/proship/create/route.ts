@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "super-secret-jwt-key";
+import { getShopFromRequest } from '@/lib/tenant';
 
 export async function POST(request: NextRequest) {
     try {
-        const shop = await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
-
+        const { shop } = await getShopFromRequest(request);
         if (!shop) return NextResponse.json({ success: false, error: "Shop not found" }, { status: 404 });
 
         const config = (shop.shippingConfig as any)?.proship || {};
@@ -25,9 +22,8 @@ export async function POST(request: NextRequest) {
         let shippingMethod = config.shippingMethod || "thaipost";
 
         try {
-            const shopSettingsRaw = await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
-            if (shopSettingsRaw?.paymentConfig) {
-                const cfg: any = shopSettingsRaw.paymentConfig;
+            if (shop.paymentConfig) {
+                const cfg: any = shop.paymentConfig;
                 if (cfg.shippingMethods) {
                     const methods: any[] = Array.isArray(cfg.shippingMethods) 
                         ? cfg.shippingMethods 

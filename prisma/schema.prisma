@@ -103,9 +103,11 @@ model Agent {
   role         AgentRole @default(AGENT)
   avatarUrl    String?   @map("avatar_url")
   isOnline     Boolean   @default(false) @map("is_online")
+  shopId       String?   @map("shop_id")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
+  shop                  Shop?          @relation(fields: [shopId], references: [id])
   assignedConversations Conversation[]
   messages              Message[]
   notes                 Note[]
@@ -469,6 +471,7 @@ model Shop {
   categories ShopCategory[]
   textures   ShopTexture[]
   orders     EcommerceOrder[]
+  agents     Agent[]
 
   @@index([tenantId])
   @@map("shops")

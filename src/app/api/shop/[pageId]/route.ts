@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { products as defaultProducts, categories as defaultCategories, shopConfig as defaultShopConfig } from "@/data";
+import { checkShopLimit } from "@/lib/plan-limits";
+import { getAuthFromRequest } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +125,33 @@ export async function POST(
     try {
         const body = await request.json();
         const { name, logo } = body;
+
+        // ── Shop limit check ──────────────────────────────
+        const auth = await getAuthFromRequest(request);
+        const tenantId = (auth as any)?.tenantId;
+        if (tenantId) {
+            // Only check if this is a new shop (not update)
+            const existingShop = await prisma.shop.findUnique({ where: { pageId } });
+            if (!existingShop) {
+                const limitCheck = await checkShopLimit(tenantId);
+                if (!limitCheck.allowed) {
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            error: `เกินจำนวนร้านค้าที่แพ็กเกจ "${limitCheck.planName}" อนุญาต (${limitCheck.current}/${limitCheck.max})`,
+                            errorEn: `Shop limit reached for "${limitCheck.planName}" plan (${limitCheck.current}/${limitCheck.max})`,
+                            upgradeRequired: true,
+                            usage: {
+                                current: limitCheck.current,
+                                max: limitCheck.max,
+                                plan: limitCheck.planSlug,
+                            },
+                        },
+                        { status: 403 }
+                    );
+                }
+            }
+        }
 
         const shop = await prisma.shop.upsert({
             where: { pageId },

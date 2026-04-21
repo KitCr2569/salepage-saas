@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic'; // Disable Vercel cache — always read 
 import { NextRequest, NextResponse } from "next/server";
 import { products, categories, shippingMethods as defaultShipping, paymentMethods as defaultPayment } from "@/data";
 import { prisma } from "@/lib/prisma";
+import { getShopFromRequest } from '@/lib/tenant';
 
 export async function GET(request: NextRequest) {
     // Allow CORS from Chat Dashboard
@@ -39,8 +40,10 @@ export async function GET(request: NextRequest) {
     }));
 
     try {
-        const shop = await prisma.shop.findFirst({ 
-            orderBy: { createdAt: "asc" },
+        const { shop: currentShop } = await getShopFromRequest(request);
+
+        const shop = await prisma.shop.findUnique({ 
+            where: { id: currentShop.id },
             include: {
                 categories: { orderBy: { sortOrder: "asc" } },
                 products: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },

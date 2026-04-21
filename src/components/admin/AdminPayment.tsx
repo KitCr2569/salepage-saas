@@ -47,6 +47,8 @@ export default function AdminPayment() {
     const setAllowCancel = useSettingsStore((s) => s.setAllowCancelPayment);
     const promptPayQR = useSettingsStore((s) => s.promptPayQR);
     const setPromptPayQR = useSettingsStore((s) => s.setPromptPayQR);
+    const promptPayPhone = useSettingsStore((s) => s.promptPayPhone);
+    const setPromptPayPhone = useSettingsStore((s) => s.setPromptPayPhone);
 
     // Settings tab state - persisted in store
     const orderFieldsEnabled = useSettingsStore((s) => s.orderFieldsEnabled);
@@ -209,6 +211,7 @@ export default function AdminPayment() {
                 transferInfo: s.transferInfo,
                 transferImage: s.transferImage,
                 promptPayQR: s.promptPayQR,
+                promptPayPhone: s.promptPayPhone,
                 allowCancelPayment: s.allowCancelPayment,
                 orderFieldsEnabled: s.orderFieldsEnabled,
                 addressRequired: s.addressRequired,
@@ -407,6 +410,36 @@ export default function AdminPayment() {
                         }}
                         className="hidden"
                     />
+
+                    {/* PromptPay Auto-Generation */}
+                    <div className="bg-blue-50 rounded-2xl p-6 shadow-sm border border-blue-100 mb-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10">📱</div>
+                        <h3 className="text-base font-bold text-blue-800 mb-2 flex items-center gap-2">
+                            📱 ระบบสร้าง QR Code พร้อมเพย์อัตโนมัติ
+                        </h3>
+                        <p className="text-sm text-blue-600 mb-5">
+                            ระบบจะสร้าง QR Code พร้อมเพย์แบบ <span className="font-bold">ระบุยอดเงินให้อัตโนมัติ</span> ตามยอดสั่งซื้อของลูกค้า ช่วยลดความผิดพลาดในการโอนเงิน
+                        </p>
+                        <div className="max-w-md bg-white p-4 rounded-xl shadow-sm">
+                            <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                                เบอร์โทรศัพท์ / เลขบัตรประชาชน พร้อมเพย์
+                            </label>
+                            <input
+                                type="text"
+                                value={promptPayPhone || ""}
+                                onChange={(e) => setPromptPayPhone(e.target.value)}
+                                placeholder="0891234567 หรือ 1101234567890"
+                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-4 mb-6">
+                        <div className="h-px bg-pink-100 w-16"></div>
+                        <span className="text-xs font-medium text-pink-300">หรืออัปโหลด QR Code แนบแบบเก่า (ระบุยอดไม่ได้)</span>
+                        <div className="h-px bg-pink-100 w-16"></div>
+                    </div>
+
                     {transferImage && (
                         <div className="bg-white rounded-2xl p-4 shadow-sm border border-pink-100 mb-6">
                             <div className="flex items-center justify-between mb-3">

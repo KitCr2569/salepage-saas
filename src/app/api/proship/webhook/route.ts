@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getFacebookPageConfig } from "@/lib/facebook";
 
 /**
  * Proship Webhook Handler
@@ -64,6 +65,9 @@ export async function POST(request: NextRequest) {
                     shippingProvider: {
                         contains: proshipOrderId
                     }
+                },
+                include: {
+                    shop: true
                 }
             });
 
@@ -96,10 +100,12 @@ export async function POST(request: NextRequest) {
                 // Notify customer via Messenger if delivered
                 if (mappedStatus === "completed" && order.facebookPsid) {
                     try {
-                        const PAGE_ACCESS_TOKEN = process.env.META_PAGE_ACCESS_TOKEN;
-                        if (PAGE_ACCESS_TOKEN) {
+                        const fakeReq = new Request('http://localhost', { headers: new Headers({ 'x-page-id': order.shop?.pageId || '' }) });
+                        const { pageAccessToken } = await getFacebookPageConfig(fakeReq as any);
+                        
+                        if (pageAccessToken) {
                             const message = `🎉 พัสดุของคุณถึงแล้ว!\n\n📦 ออเดอร์: #${order.orderNumber}\n🚚 เลขพัสดุ: ${trackingNo || order.trackingNumber}\n✅ สถานะ: จัดส่งสำเร็จ\n\nขอบคุณที่สั่งซื้อสินค้ากับเรานะครับ 🙏`;
-                            await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, {
+                            await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${pageAccessToken}`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
@@ -118,10 +124,12 @@ export async function POST(request: NextRequest) {
                 // Notify customer if returned/cancelled
                 if (mappedStatus === "cancelled" && order.facebookPsid) {
                     try {
-                        const PAGE_ACCESS_TOKEN = process.env.META_PAGE_ACCESS_TOKEN;
-                        if (PAGE_ACCESS_TOKEN) {
+                        const fakeReq = new Request('http://localhost', { headers: new Headers({ 'x-page-id': order.shop?.pageId || '' }) });
+                        const { pageAccessToken } = await getFacebookPageConfig(fakeReq as any);
+                        
+                        if (pageAccessToken) {
                             const message = `⚠️ แจ้งสถานะพัสดุ\n\n📦 ออเดอร์: #${order.orderNumber}\n🚚 เลขพัสดุ: ${trackingNo || order.trackingNumber}\n❌ สถานะ: ${proshipStatus === 5 ? "ตีกลับ" : "ยกเลิก"}\n\nกรุณาติดต่อเราเพื่อดำเนินการต่อครับ 🙏`;
-                            await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, {
+                            await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${pageAccessToken}`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({

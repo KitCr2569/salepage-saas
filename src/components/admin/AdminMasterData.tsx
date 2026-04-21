@@ -16,6 +16,7 @@ export default function AdminMasterData({ onNavigate, onBack }: AdminMasterDataP
         { icon: "👤", label: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Shop profile" : "โปรไฟล์ร้าน"), desc: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Store information and logo" : "ข้อมูลร้านค้าและโลโก้"), id: "ShopProfilePage" as AdminTab, count: "" },
         { icon: "📄", label: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Sale page" : "เซลเพจ"), desc: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Online sales page" : "หน้าขายสินค้าออนไลน์"), id: "SalePage" as AdminTab, count: "" },
         { icon: "🛒", label: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "shopping cart" : "ตะกร้าสินค้า"), desc: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Set up the cart summary page" : "ตั้งค่าหน้าสรุปตะกร้า"), id: "CartSummary" as AdminTab, count: "" },
+        { icon: "??", label: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Staff" : "��ѡ�ҹ"), desc: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Manage staff members" : "�Ѵ��úѭ�շ���ҹ��Ш���ҹ"), id: "Staff" as AdminTab, count: "" },
     ];
 
     return (
@@ -61,3 +62,4 @@ export default function AdminMasterData({ onNavigate, onBack }: AdminMasterDataP
         </div>
     );
 }
+

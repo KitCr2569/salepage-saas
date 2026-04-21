@@ -9,6 +9,8 @@ import { appendOrderToSheet, isSheetsConfigured, type SheetOrderData } from "@/l
 import { getAuthFromRequest } from "@/lib/auth";
 import { getFacebookPageConfig } from '@/lib/facebook';
 import { sendPurchaseEvent, isMetaCAPIConfigured } from '@/lib/meta-capi';
+import { getShopFromRequest } from '@/lib/tenant';
+import { deductStock, restoreStock, extractCartItemsForStock } from '@/lib/stock';
 
 
 export const dynamic = 'force-dynamic';
@@ -97,8 +99,11 @@ export async function GET(request: Request) {
         // ⚡ Filter junk orders directly in the DB query instead of fetching all and filtering in JS
         // cacheStrategy only works with Prisma Accelerate (prisma:// URLs), ignored otherwise
         const isAccelerate = (process.env.DATABASE_URL || '').startsWith('prisma://');
+        const { shop } = await getShopFromRequest(request);
+
         const dbOrders = await prisma.ecommerceOrder.findMany({
             where: {
+                shopId: shop.id,
                 AND: [
                     // Exclude legacy junk orders
                     { NOT: { note: { contains: 'tempcart_' } } },
@@ -325,8 +330,11 @@ export async function POST(request: Request) {
         const randomSuffix = Math.floor(Math.random() * 900) + 100;
         const genOrderNum = `ORD-${yyyymmdd}-${randomSuffix}`;
 
+        const { shop } = await getShopFromRequest(request);
+
         const newOrderData: any = {
             orderNumber: body.orderNumber || genOrderNum,
+            shopId: shop.id,
             customerData: customerData,
             itemsData: items,
             itemCount: items.length,
@@ -358,6 +366,19 @@ export async function POST(request: Request) {
         const formattedOrder = formatOrderResponse(dbOrder);
 
         console.log("✅ Order created in Database:", dbOrder.orderNumber);
+
+        // ── Auto-deduct stock ─────────────────────────────
+        try {
+            const stockItems = extractCartItemsForStock(dbOrder.itemsData);
+            if (stockItems.length > 0) {
+                const stockResult = await deductStock(stockItems);
+                if (stockResult.errors.length > 0) {
+                    console.warn('[Stock] Deduction warnings:', stockResult.errors);
+                }
+            }
+        } catch (stockErr) {
+            console.warn('[Stock] Deduction failed (non-blocking):', stockErr);
+        }
 
         // Skip notifications if order comes from unified-chat (it sends its own messages)
         if (body.source !== 'unified-chat') {
@@ -425,7 +446,7 @@ async function syncToHaravan(orderData: any) {
             ? `https://${process.env.VERCEL_URL}`
             : process.env.NEXT_PUBLIC_APP_URL || "https://www.hdgwrapskin.com";
 
-        const { pageAccessToken, pageId } = await getFacebookPageConfig();
+        const { pageAccessToken, pageId } = await getFacebookPageConfig(orderData.shopId ? { headers: new Headers({ 'x-shop-id': orderData.shopId }) } as any : undefined);
 
 
         const response = await fetch(`${baseUrl}/api/haravan`, {
@@ -499,6 +520,19 @@ export async function PATCH(request: Request) {
         });
 
         console.log("✅ Order updated:", orderId);
+
+        // 🔄 Restore stock if cancelling (and wasn't already cancelled)
+        if (status === "cancelled" && existingOrder && existingOrder.status !== "cancelled") {
+            try {
+                const stockItems = extractCartItemsForStock(existingOrder.itemsData);
+                if (stockItems.length > 0) {
+                    await restoreStock(stockItems);
+                    console.log(`[Stock] ✅ Restored stock for cancelled order: ${orderId}`);
+                }
+            } catch (stockErr) {
+                console.warn('[Stock] Restore on cancel failed:', stockErr);
+            }
+        }
 
         // 🔄 Sync status to `order` (Chat) table if status changed to cancelled
         if (status === "cancelled") {
@@ -620,6 +654,19 @@ export async function DELETE(request: Request) {
         }
 
         const order = await prisma.ecommerceOrder.findUnique({ where: { orderNumber: orderId } });
+
+        // 🔄 Restore stock on delete (only if not already cancelled — cancel already restores)
+        if (order && order.status !== "cancelled") {
+            try {
+                const stockItems = extractCartItemsForStock(order.itemsData);
+                if (stockItems.length > 0) {
+                    await restoreStock(stockItems);
+                    console.log(`[Stock] ✅ Restored stock for deleted order: ${orderId}`);
+                }
+            } catch (stockErr) {
+                console.warn('[Stock] Restore on delete failed:', stockErr);
+            }
+        }
         
         // If it's a Proship order, try to delete from Proship too
         if (order?.shippingProvider?.startsWith("Proship|")) {

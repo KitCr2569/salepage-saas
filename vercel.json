@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/migrate-neon",
       "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/cron/check-subscriptions",
+      "schedule": "0 18 * * *"
     }
   ]
 }

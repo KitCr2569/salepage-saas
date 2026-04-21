@@ -8,6 +8,7 @@ import { Product, ProductVariant, Category } from "@/types";
 import { Plus, Edit2, Trash2, Search, Package, X, Save, Image as ImageIcon, Upload, CheckSquare, Square, Copy, Clipboard, ClipboardPaste, Scissors, Download, FolderUp, ArrowUpDown, GripVertical, Wand2 } from "lucide-react";
 import AdminDiscount from "@/components/admin/AdminDiscount";
 import AdminTextures from "@/components/admin/AdminTextures";
+import UsageBar from "@/components/admin/UsageBar";
 import { Trans } from "@/components/Trans";
 import Swal from 'sweetalert2';
 
@@ -89,6 +90,25 @@ export default function AdminProducts() {
     const [productSubTab, setProductSubTab] = useState<"products" | "discount" | "texture">("products");
     const [studioOpen, setStudioOpen] = useState(false);
     const [studioIndex, setStudioIndex] = useState(0);
+    const [usageData, setUsageData] = useState<any>(null);
+    const [lowStockItems, setLowStockItems] = useState<any[]>([]);
+
+    // Fetch plan usage info
+    useEffect(() => {
+        fetch("/api/tenant/usage")
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && res.data) setUsageData(res.data);
+            })
+            .catch(() => {});
+        // Fetch low stock items
+        fetch("/api/stock?threshold=5")
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && res.data) setLowStockItems(res.data.items || []);
+            })
+            .catch(() => {});
+    }, []);
 
     const filtered = productsList.filter((p) => {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -619,6 +639,50 @@ export default function AdminProducts() {
                     {errorMsg && (
                         <div className="fixed top-20 right-6 z-[100] bg-red-500 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium animate-[slideIn_0.3s_ease]">
                             ⚠️ {errorMsg}
+                        </div>
+                    )}
+
+                    {/* Plan Usage Bar */}
+                    {usageData && (
+                        <div className="mb-4">
+                            <UsageBar
+                                label="จำนวนสินค้า"
+                                labelEn="Products"
+                                current={usageData.products.current}
+                                max={usageData.products.max}
+                                icon="📦"
+                                onUpgrade={() => { window.location.hash = "Upgrade"; }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Low Stock Alert */}
+                    {lowStockItems.length > 0 && (
+                        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-lg">⚠️</span>
+                                <span className="text-sm font-bold text-amber-700">
+                                    สินค้าใกล้หมด ({lowStockItems.length} รายการ)
+                                </span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {lowStockItems.slice(0, 8).map((item) => (
+                                    <span key={item.productId + item.variantId}
+                                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${
+                                            item.stock === 0 
+                                                ? 'bg-red-100 text-red-700' 
+                                                : 'bg-amber-100 text-amber-700'
+                                        }`}
+                                    >
+                                        {item.productName} ({item.variantName}): {item.stock === 0 ? '❌ หมด!' : `เหลือ ${item.stock}`}
+                                    </span>
+                                ))}
+                                {lowStockItems.length > 8 && (
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600">
+                                        +{lowStockItems.length - 8} รายการ
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     )}
 

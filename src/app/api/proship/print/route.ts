@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getShopFromRequest } from '@/lib/tenant';
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { orderId, targetProshipId } = body;
 
-        const shop = await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
+        const { shop } = await getShopFromRequest(request);
         if (!shop) return NextResponse.json({ success: false, error: "Shop not found" }, { status: 404 });
 
         const config = (shop.shippingConfig as any)?.proship || {};

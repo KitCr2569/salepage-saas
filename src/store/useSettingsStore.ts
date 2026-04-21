@@ -63,6 +63,8 @@ interface SettingsStore {
     // PromptPay QR
     promptPayQR: string | null;
     setPromptPayQR: (img: string | null) => void;
+    promptPayPhone: string;
+    setPromptPayPhone: (phone: string) => void;
 
     // Allow cancel payment
     allowCancelPayment: boolean;
@@ -216,6 +218,8 @@ export const useSettingsStore = create<SettingsStore>()(
             // PromptPay QR
             promptPayQR: null,
             setPromptPayQR: (img) => set({ promptPayQR: img }),
+            promptPayPhone: "",
+            setPromptPayPhone: (phone) => set({ promptPayPhone: phone }),
 
             // Allow cancel
             allowCancelPayment: false,

@@ -1,30 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getShopFromRequest, clearShopCache } from '@/lib/tenant';
 import { getAuthFromRequest } from '@/lib/auth';
 
-// Helper to get or create the primary shop
-async function getPrimaryShop() {
-    let shop = await prisma.shop.findFirst({
-        orderBy: { createdAt: 'asc' }
-    });
-    
-    if (!shop) {
-        shop = await prisma.shop.create({
-            data: {
-                pageId: "114336388182180",
-                slug: "hdgwrapskin",
-                name: "HDG Wrap",
-                currency: "THB",
-                currencySymbol: "฿",
-            }
-        });
-    }
-    return shop;
-}
-
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        const shop = await getPrimaryShop();
+        const { shop } = await getShopFromRequest(req);
         return NextResponse.json({
             success: true,
             data: shop.paymentConfig || {}
@@ -41,12 +22,14 @@ export async function POST(req: Request) {
         if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
-        const shop = await getPrimaryShop();
+        const { shop } = await getShopFromRequest(req);
         
         const updated = await prisma.shop.update({
             where: { id: shop.id },
             data: { paymentConfig: body }
         });
+
+        clearShopCache(); // clear cache after update
         
         return NextResponse.json({ 
             success: true, 

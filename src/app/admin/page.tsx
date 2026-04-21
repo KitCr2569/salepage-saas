@@ -21,6 +21,9 @@ import AdminSalesTools from "@/components/admin/AdminSalesTools";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminMasterData from "@/components/admin/AdminMasterData";
 import AdminUpgrade from "@/components/admin/AdminUpgrade";
+import ShopSelector from "@/components/admin/ShopSelector";
+import AdminStaff from "@/components/admin/AdminStaff";
+import TenantOverview from "@/components/admin/TenantOverview";
 import { CustomerAnalysis, RetargetCustomers, ScheduledPosting, EmailMarketing, CrossSell } from "@/components/admin/SalesToolPages";
 import { shopConfig } from "@/data";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -50,7 +53,9 @@ export type AdminTab =
     | "RetargetCustomers"
     | "ScheduledPosting"
     | "EmailMarketing"
-    | "CrossSell";
+    | "CrossSell"
+    | "Staff"
+    | "TenantOverview";
 
 // Top tabs use i18n keys — resolved at render time
 const topTabDefs: { id: AdminTab; labelKey: string }[] = [
@@ -66,7 +71,7 @@ const topTabDefs: { id: AdminTab; labelKey: string }[] = [
     { id: "UnifiedChat", labelKey: "tab.unifiedChat" },
 ];
 
-const allTabIds = [...topTabDefs.map(t => t.id), 'home', 'Chatbot', 'TikTok', 'SalesTools', 'Analytics', 'MasterData', 'Upgrade', 'CustomerAnalysis', 'RetargetCustomers', 'ScheduledPosting', 'EmailMarketing', 'CrossSell'];
+const allTabIds = [...topTabDefs.map(t => t.id), 'home', 'Chatbot', 'TikTok', 'SalesTools', 'Analytics', 'MasterData', 'Upgrade', 'CustomerAnalysis', 'RetargetCustomers', 'ScheduledPosting', 'EmailMarketing', 'CrossSell', 'Staff', 'TenantOverview'];
 const validTabs = new Set(allTabIds);
 
 // ─── User Menu (Logout) ─────────────────────────────────────
@@ -241,6 +246,8 @@ export default function AdminPage() {
         switch (activeTab) {
             case "home":
                 return <AdminHome onNavigate={handleTabChange} />;
+            case "TenantOverview":
+                return <TenantOverview onNavigate={handleTabChange} />;
             case "ShopProfilePage":
                 return <AdminProfile />;
             case "Products":
@@ -276,6 +283,8 @@ export default function AdminPage() {
                 return <AdminAnalytics onBack={() => handleTabChange('home')} />;
             case "MasterData":
                 return <AdminMasterData onNavigate={handleTabChange} onBack={() => handleTabChange('home')} />;
+            case "Staff":
+                return <AdminStaff onBack={() => handleTabChange('MasterData')} />;
             case "Upgrade":
                 return <AdminUpgrade />;
             case "CustomerAnalysis":
@@ -335,6 +344,7 @@ export default function AdminPage() {
                     <nav className="flex-1 px-2 space-y-0.5">
                         {[
                             { icon: "🏠", label: t('sidebar.home'), id: "home" as AdminTab },
+                            { icon: "🏢", label: (typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "Overview" : "ภาพรวมธุรกิจ"), id: "TenantOverview" as AdminTab },
                             { icon: "💬", label: t('sidebar.chatbot'), id: "Chatbot" as AdminTab, badge: "Ai Agents" },
                             { icon: "🎵", label: t('sidebar.tiktok'), id: "TikTok" as AdminTab },
                             { icon: "📢", label: t('sidebar.broadcast'), id: "Broadcast" as AdminTab },
@@ -406,10 +416,11 @@ export default function AdminPage() {
                             </button>
                             <button
                                 onClick={() => { setLocale(locale === 'th' ? 'en' : 'th'); }}
-                                className="flex items-center gap-1 text-sm text-gray-600 hover:text-pink-600 transition-colors px-2 py-1 rounded-lg hover:bg-pink-50 cursor-pointer"
+                                className="flex items-center gap-1 text-sm text-gray-600 hover:text-pink-600 transition-colors px-2 py-1 rounded-lg hover:bg-pink-50 cursor-pointer hidden md:flex"
                             >
                                 🌐 {locale === 'th' ? 'TH' : 'EN'}
                             </button>
+                            <ShopSelector />
                             <div className="h-6 w-px bg-gray-200" />
                             <UserMenu />
                         </div>

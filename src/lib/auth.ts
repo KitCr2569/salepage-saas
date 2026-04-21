@@ -20,6 +20,8 @@ export interface JWTPayload {
     email: string;
     name: string;
     role: 'ADMIN' | 'AGENT';
+    tenantId?: string; // multi-tenant: which tenant
+    shopId?: string;   // multi-tenant: which shop
 }
 
 /**
