@@ -7,6 +7,8 @@ import { getAuthFromRequest } from '@/lib/auth';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api-helpers';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 const MOCK_AGENTS = [
     { id: 'mock-admin-001', name: 'Admin User', email: 'admin@unified-chat.com', role: 'ADMIN', avatarUrl: null, isOnline: true },
     { id: 'mock-agent-001', name: 'สมชาย ใจดี', email: 'agent1@unified-chat.com', role: 'AGENT', avatarUrl: null, isOnline: true },
