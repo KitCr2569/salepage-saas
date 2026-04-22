@@ -755,7 +755,7 @@ export async function POST(request: NextRequest) {
         // Get chatbot config from DB
         let chatbotConfig: any = null;
         try {
-            const dbShop = await prisma.shop.findFirst({ where: { pageId: String(recipientId) }, orderBy: { createdAt: 'asc' } })
+            const dbShop = await prisma.shop.findFirst({ where: { pageId: String(pageId) }, orderBy: { createdAt: 'asc' } })
                 ?? await prisma.shop.findFirst({ orderBy: { createdAt: 'asc' } });
             if (dbShop?.chatbotConfig) {
                 chatbotConfig = typeof dbShop.chatbotConfig === 'string' ? JSON.parse(dbShop.chatbotConfig) : dbShop.chatbotConfig;

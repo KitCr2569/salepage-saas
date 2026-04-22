@@ -34,7 +34,7 @@ if ($foundShortcuts.Count -eq 0) {
         $shortcutPath = "$desktopPath\Antigravity.lnk"
         $shortcut = $WshShell.CreateShortcut($shortcutPath)
         $shortcut.TargetPath = $exePath
-        $shortcut.Arguments = "--remote-debugging-port=9000"
+        $shortcut.Arguments = "--remote-debugging-port=9222"
         $shortcut.Save()
         Write-Host "Created new shortcut: $shortcutPath" -ForegroundColor Green
     } else {
@@ -48,9 +48,9 @@ if ($foundShortcuts.Count -eq 0) {
         $originalArgs = $shortcut.Arguments
 
         if ($originalArgs -match "--remote-debugging-port=\d+") {
-            $shortcut.Arguments = $originalArgs -replace "--remote-debugging-port=\d+", "--remote-debugging-port=9000"
+            $shortcut.Arguments = $originalArgs -replace "--remote-debugging-port=\d+", "--remote-debugging-port=9222"
         } else {
-            $shortcut.Arguments = "--remote-debugging-port=9000 " + $originalArgs
+            $shortcut.Arguments = "--remote-debugging-port=9222 " + $originalArgs
         }
         $shortcut.Save()
         Write-Host "Updated: $($shortcutFile.Name)" -ForegroundColor Green
