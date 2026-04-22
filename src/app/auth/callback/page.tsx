@@ -81,7 +81,10 @@ export default function AuthCallbackPage() {
                     const chat = await fetch("/api/chat/auth/login", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email: "admin@hdg.com", password: "admin123" }),
+                        body: JSON.stringify({ 
+                            email: process.env.NEXT_PUBLIC_CHAT_ADMIN_EMAIL || "admin@shop.com", 
+                            password: process.env.NEXT_PUBLIC_CHAT_ADMIN_PASSWORD || "" 
+                        }),
                     }).then((r) => r.json());
                     if (chat.success && chat.data?.token) {
                         localStorage.setItem("chat-auth-token", chat.data.token);

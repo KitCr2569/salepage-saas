@@ -10,41 +10,20 @@ import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 
 // ─── Mock agents (used when DB is unavailable) ──────────────
+// Credentials loaded from environment — no more hardcoded passwords in source!
+const ADMIN_EMAIL = process.env.CHAT_ADMIN_EMAIL || 'admin@shop.com';
+const ADMIN_PASSWORD = process.env.CHAT_ADMIN_PASSWORD || '';
+// Pre-hashed version of default password (bcrypt of 'admin123')
+const DEFAULT_HASH = '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu.1u';
+
 const MOCK_AGENTS = [
     {
-        id: 'mock-admin-hdg',
-        email: 'admin@hdg.com',
-        password: 'admin123',
-        passwordHash: '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu.1u',
+        id: 'mock-admin-001',
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD,
+        passwordHash: DEFAULT_HASH,
         name: 'Admin',
         role: 'ADMIN' as const,
-        avatarUrl: null,
-    },
-    {
-        id: 'mock-admin-001',
-        email: 'admin@unified-chat.com',
-        password: 'admin123',
-        passwordHash: '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu.1u',
-        name: 'Admin User',
-        role: 'ADMIN' as const,
-        avatarUrl: null,
-    },
-    {
-        id: 'mock-agent-001',
-        email: 'agent1@unified-chat.com',
-        password: 'admin123',
-        passwordHash: '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu.1u',
-        name: 'สมชาย ใจดี',
-        role: 'AGENT' as const,
-        avatarUrl: null,
-    },
-    {
-        id: 'mock-agent-002',
-        email: 'agent2@unified-chat.com',
-        password: 'admin123',
-        passwordHash: '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu.1u',
-        name: 'สมหญิง รักงาน',
-        role: 'AGENT' as const,
         avatarUrl: null,
     },
 ];
@@ -86,16 +65,7 @@ async function loginWithDatabase(email: string, password: string) {
 
     const passwordValid = await verifyPassword(password, agent.passwordHash);
     if (!passwordValid) {
-        // Fallback: also check known demo passwords (for seed data with incorrect hashes)
-        const DEMO_PASSWORDS: Record<string, string> = {
-            'admin@unified-chat.com': 'admin123',
-            'agent1@unified-chat.com': 'admin123',
-            'agent2@unified-chat.com': 'admin123',
-        };
-        if (DEMO_PASSWORDS[email] !== password) {
-            return null;
-        }
-        logger.warn('Auth', `Used demo password fallback for ${email} — consider re-seeding database`);
+        return null;
     }
 
     // Update online status
