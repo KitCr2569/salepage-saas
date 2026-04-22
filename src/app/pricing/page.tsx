@@ -95,12 +95,12 @@ export default function PricingPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
-            <span className="bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-white to-amber-200 bg-clip-text text-transparent">
               เลือกแพ็กเกจที่เหมาะกับคุณ
             </span>
           </h1>
           <p className="text-gray-400 text-lg mb-8">
-            เริ่มต้นฟรี อัปเกรดเมื่อธุรกิจเติบโต
+            เริ่มต้นใช้งานด้วยรหัสเชิญจากผู้ดูแลระบบ
           </p>
 
           {/* Toggle */}
@@ -132,7 +132,7 @@ export default function PricingPage() {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
           {plans.map((plan) => {
             const features = getFeatures(plan);
             const isPro = plan.slug === "pro";
@@ -194,7 +194,7 @@ export default function PricingPage() {
                   {features.map((f) => (
                     <div key={f} className="flex items-center gap-2 text-sm text-gray-400">
                       <span className="text-green-400 text-xs">✓</span>
-                      <span>{featureLabels[f] || f.replace(/_/g, " ")}</span>
+                      <span>{f}</span>
                     </div>
                   ))}
                 </div>

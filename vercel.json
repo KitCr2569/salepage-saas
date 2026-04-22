@@ -10,7 +10,7 @@
       "schedule": "0 18 * * *"
     },
     {
-      "path": "/api/cron/check-subscriptions",
+      "path": "/api/cron/expire-subscriptions",
       "schedule": "0 18 * * *"
     }
   ]

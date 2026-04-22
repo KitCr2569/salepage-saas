@@ -57,6 +57,11 @@ export async function GET(req: NextRequest) {
           }),
         ]);
 
+      // Calculate monthly revenue from active subscriptions
+      const monthlyRevenue = plans.reduce((sum: number, p: any) => {
+        return sum + (Number(p.price) * p._count.subscriptions);
+      }, 0);
+
       return NextResponse.json({
         success: true,
         data: {
@@ -65,6 +70,7 @@ export async function GET(req: NextRequest) {
             shops: shopCount,
             orders: orderCount,
             revenue: Number(revenue._sum.amount || 0),
+            monthlyRevenue,
           },
           plans: plans.map((p: any) => ({
             name: p.name,
@@ -202,6 +208,43 @@ export async function PATCH(req: NextRequest) {
         success: true,
         data: { message: "อนุมัติการชำระเงินเรียบร้อย" },
       });
+    }
+
+    case "upgrade_tenant": {
+      const { planSlug } = body;
+      const plan = await prisma.plan.findUnique({ where: { slug: planSlug } });
+      if (!plan) return NextResponse.json({ success: false, error: "ไม่พบแพ็กเกจ" }, { status: 404 });
+
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      const sub = await prisma.subscription.findUnique({ where: { tenantId: targetId } });
+      if (sub) {
+        await prisma.subscription.update({
+          where: { id: sub.id },
+          data: { planId: plan.id, status: "ACTIVE", startDate: now, endDate },
+        });
+      } else {
+        await prisma.subscription.create({
+          data: { tenantId: targetId, planId: plan.id, status: "ACTIVE", startDate: now, endDate },
+        });
+      }
+      return NextResponse.json({ success: true, data: { message: `เปลี่ยนเป็น ${plan.name} แล้ว` } });
+    }
+
+    case "delete_tenant": {
+      // Delete shops, subscription, invoices first
+      await prisma.invoice.deleteMany({ where: { tenantId: targetId } });
+      await prisma.subscription.deleteMany({ where: { tenantId: targetId } });
+      const shops = await prisma.shop.findMany({ where: { tenantId: targetId } });
+      for (const shop of shops) {
+        await prisma.shopProduct.deleteMany({ where: { shopId: shop.id } });
+        await prisma.shopCategory.deleteMany({ where: { shopId: shop.id } });
+      }
+      await prisma.shop.deleteMany({ where: { tenantId: targetId } });
+      await prisma.tenant.delete({ where: { id: targetId } });
+      return NextResponse.json({ success: true, data: { message: "ลบบัญชีเรียบร้อย" } });
     }
 
     default:

@@ -444,6 +444,34 @@ model Invoice {
   @@map("invoices")
 }
 
+// ─── Invite Code (รหัสเชิญ) ──────────────────────────────────
+
+model InviteCode {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  planSlug    String    @map("plan_slug")       // starter, pro, premium
+  label       String?                            // ชื่อลูกค้า (optional)
+  isUsed      Boolean   @default(false) @map("is_used")
+  usedBy      String?   @map("used_by")         // tenantId ที่ใช้
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([code])
+  @@index([isUsed])
+  @@map("invite_codes")
+}
+
+// ─── Platform Settings (Global key-value) ────────────────────
+
+model PlatformSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_settings")
+}
+
 // ─── Shop (Multi-tenant store) ───────────────────────────────
 
 model Shop {
