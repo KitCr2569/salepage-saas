@@ -54,7 +54,7 @@ export default function AdminHome({ onNavigate }: AdminHomeProps) {
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800">{<Trans th="หน้าหลัก" en="Home page" />}</h2>
-                    <p className="text-xs text-gray-400">{<Trans th="ภาพรวมร้านค้า HDG Wrapskin" en="HDG Wrapskin Shop Overview" />}</p>
+                    <p className="text-xs text-gray-400">{<Trans th="ภาพรวมร้านค้าของคุณ" en="Your Shop Overview" />}</p>
                 </div>
             </div>
 

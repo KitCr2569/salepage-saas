@@ -484,7 +484,7 @@ export default function AdminChatbot() {
                                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex items-center gap-3">
                                     <span className="text-white text-lg font-light">‹</span>
                                     <div className="w-8 h-8 rounded-full bg-white/20 flex-shrink-0" />
-                                    <span className="text-white text-sm font-semibold flex-1">{<Trans th="ร้าน HDG Wrapskin" en="HDG Wrapskin Shop" />}</span>
+                                    <span className="text-white text-sm font-semibold flex-1">{connectedPage?.name || <Trans th="ร้านค้าของฉัน" en="My Shop" />}</span>
                                 </div>
                                 
                                 <div className="flex-1 bg-gray-50/50 p-4 flex flex-col justify-end gap-3 pb-[80px] overflow-y-auto">

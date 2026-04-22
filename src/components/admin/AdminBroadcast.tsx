@@ -864,7 +864,7 @@ export default function AdminBroadcast() {
                                     <div className="bg-blue-600 px-4 py-2 flex items-center gap-2">
                                         <span className="text-white text-xs">←</span>
                                         <div className="w-6 h-6 rounded-full bg-white/20" />
-                                        <span className="text-white text-sm font-medium flex-1">HDG Wrap</span>
+                                        <span className="text-white text-sm font-medium flex-1">{connectedPage?.name || t('bc.myShop')}</span>
                                         <span className="text-white/60 text-xs">📞</span>
                                     </div>
 
