@@ -335,7 +335,7 @@ export default function AdminPage() {
                             <span>▶</span> {t('admin.running')}
                         </div>
                         <div className="bg-white/20 text-white text-[10px] px-3 py-1 rounded-lg text-center max-w-[180px] truncate">
-                            HDG WRAP STICKER FI...
+                            {useAuthStore.getState().connectedPage?.name || shopConfig.shopName || 'Shop'}
                         </div>
                     </div>
 

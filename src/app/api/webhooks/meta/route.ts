@@ -11,6 +11,11 @@ import { prisma } from '@/lib/prisma';
 import { broadcastMessage } from '@/lib/supabase';
 import { getOrderConfirmation, getTrackingButtonMsg, getTrackingButtonTitle, getAddressConfirm, getAddressConfirmWithNote, getCheckoutOrderSummary } from '@/lib/template-loader';
 
+// ─── Base URL Helper ──────────────────────────────────────────
+function getShopBaseUrl(): string {
+    return (process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com').replace(/\/$/, '');
+}
+
 // ─── Token Helpers ────────────────────────────────────────────
 
 async function getPageAccessToken(dbConfig?: Record<string, unknown> | null): Promise<string> {
@@ -263,7 +268,7 @@ async function handleCartReferral(senderId: string, ref: string, token: string) 
             await sendText(senderId, msg, token);
             await saveOutboundMessage(senderId, msg);
 
-            const trackingUrl = `https://www.hdgwrapskin.com/order/${orderInfo.on}?psid=${senderId}`;
+            const trackingUrl = `${getShopBaseUrl()}/order/${orderInfo.on}?psid=${senderId}`;
             const trackingMsg = await getTrackingButtonMsg(vars);
             await sendButtons(senderId, trackingMsg, [
                 { type: 'web_url', title: getTrackingButtonTitle(), url: trackingUrl },
@@ -415,12 +420,12 @@ async function handleCartReferral(senderId: string, ref: string, token: string) 
                 image: img
             };
         });
-        const checkoutUrl = `https://www.hdgwrapskin.com/checkout?cart=${encodeURIComponent(JSON.stringify(minimalCart))}`;
+        const checkoutUrl = `${getShopBaseUrl()}/checkout?cart=${encodeURIComponent(JSON.stringify(minimalCart))}`;
 
         await sendText(senderId, orderText, token);
         await saveOutboundMessage(senderId, orderText);
         await sendButtons(senderId, 'กรุณาเลือกดำเนินการ:', [
-            { type: 'web_url', title: '✏️ เพิ่ม/แก้ไข', url: 'https://www.hdgwrapskin.com', webview_height_ratio: 'full', messenger_extensions: true },
+            { type: 'web_url', title: '✏️ เพิ่ม/แก้ไข', url: getShopBaseUrl(), webview_height_ratio: 'full', messenger_extensions: true },
             { type: 'web_url', title: '✅ ยืนยันออเดอร์', url: checkoutUrl, webview_height_ratio: 'full', messenger_extensions: true },
         ], token);
         await saveOutboundMessage(senderId, 'กรุณาเลือกดำเนินการ: [✏️ เพิ่ม/แก้ไข] [✅ ยืนยันออเดอร์]');
@@ -479,7 +484,7 @@ async function handleCheckoutReferral(senderId: string, ref: string, token: stri
         await sendText(senderId, msg, token);
         await saveOutboundMessage(senderId, msg);
 
-        const trackingUrl = `https://www.hdgwrapskin.com/order/${orderNumber}?psid=${senderId}`;
+        const trackingUrl = `${getShopBaseUrl()}/order/${orderNumber}?psid=${senderId}`;
         const trackingMsg = await getTrackingButtonMsg(vars2);
         await sendButtons(senderId, trackingMsg, [
             { type: 'web_url', title: getTrackingButtonTitle(), url: trackingUrl },
@@ -645,7 +650,7 @@ async function handleRawEvents(body: any, token: string, chatbotConfig?: any): P
                     await sendText(senderId, await getAddressConfirm({ orderNumber: orderNum }), token);
                     continue;
                 } else if (payload === 'EDIT_ORDER') {
-                    await sendText(senderId, 'กรุณากลับไปที่หน้าร้านเพื่อแก้ไขออเดอร์ 🛒\nhttps://www.hdgwrapskin.com', token);
+                    await sendText(senderId, `กรุณากลับไปที่หน้าร้านเพื่อแก้ไขออเดอร์ 🛒\n${getShopBaseUrl()}`, token);
                 } else if (payload === 'CONFIRM_ORDER') {
                     await sendText(senderId, '✅ ขอบคุณที่ยืนยันออเดอร์!\n\nกรุณาเลือกวิธีจัดส่งและชำระเงิน แอดมินจะติดต่อกลับโดยเร็วครับ 🙏', token);
                 } else if (payload.toUpperCase() === 'GET_STARTED' || payload.toUpperCase() === 'START') {
@@ -653,7 +658,7 @@ async function handleRawEvents(body: any, token: string, chatbotConfig?: any): P
                         const mid = event.postback.mid || `GET_STARTED_${senderId}_${Date.now()}`;
                         await sendChatbotGreeting(senderId, chatbotConfig, token, mid);
                     } else {
-                        await sendText(senderId, 'สวัสดีครับ! ยินดีต้อนรับสู่ HDG Wrap 🙏\nสอบถามสินค้าหรือส่งออเดอร์ได้เลยครับ 🛒', token);
+                        await sendText(senderId, 'สวัสดีครับ! ยินดีต้อนรับ 🙏\nสอบถามสินค้าหรือส่งออเดอร์ได้เลยครับ 🛒', token);
                     }
                     greetingSentTo.add(senderId); // mark greeting sent → suppress duplicate from message loop
                 }
