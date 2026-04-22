@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCustomerStore } from "@/store/useCustomerStore";
 import { Suspense } from "react";
 
-const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1417314816291087";
+const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "";
 
 function CustomerCallbackInner() {
     const router = useRouter();

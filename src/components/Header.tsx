@@ -10,7 +10,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { getThemeById } from "@/lib/themes";
 import { Trans } from "@/components/Trans";
 
-const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1417314816291087";
+const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "";
 
 export default function Header() {
     const {

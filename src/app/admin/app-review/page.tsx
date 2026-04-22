@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Facebook, CheckCircle, AlertTriangle, Send, RefreshCw, Zap, BarChart3, ShieldCheck, Server, ArrowRight, ExternalLink } from "lucide-react";
 
-const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1417314816291087";
+const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "";
 const FB_SCOPE = "pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,marketing_messages_messenger,ads_management";
 
 // Caption component with English text

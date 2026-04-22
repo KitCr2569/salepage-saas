@@ -15,7 +15,7 @@ declare global {
     }
 }
 
-const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1417314816291087";
+const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "";
 // Removed hardcoded REDIRECT_URI to use dynamic one
 const FB_SCOPE = "pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,marketing_messages_messenger,ads_management";
 

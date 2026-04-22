@@ -1689,7 +1689,7 @@ export default function AdminBroadcast() {
                     <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                         <p className="text-[11px] text-gray-500 leading-relaxed">
                             {t('bc.permTip')}
-                            {t('bc.refreshAppReview')} <a href={`https://developers.facebook.com/apps/${process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '1417314816291087'}/use_cases/customize/`} target="_blank" rel="noopener" className="text-blue-500 underline">App Review</a>
+                            {t('bc.refreshAppReview')} <a href={`https://developers.facebook.com/apps/${process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || ''}/use_cases/customize/`} target="_blank" rel="noopener" className="text-blue-500 underline">App Review</a>
                         </p>
                     </div>
                 </div>
