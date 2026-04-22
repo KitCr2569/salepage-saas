@@ -6,7 +6,7 @@
 export const dynamic = 'force-dynamic'; // Disable Vercel cache — always read from DB
 
 import { NextRequest, NextResponse } from "next/server";
-import { products, categories, shippingMethods as defaultShipping, paymentMethods as defaultPayment } from "@/data";
+import { products, categories, shippingMethods as defaultShipping, paymentMethods as defaultPayment, shopConfig } from "@/data";
 import { prisma } from "@/lib/prisma";
 import { getShopFromRequest } from '@/lib/tenant';
 
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
             categories: categoryList,
             shippingMethods: shippingList,
             paymentMethods: paymentList,
-            shopName: "HDG Wrap Sticker",
+            shopName: shopConfig.shopName,
         },
         { headers }
     );

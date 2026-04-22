@@ -49,8 +49,8 @@ export default function SettingsPanel() {
     const [tokenStatus, setTokenStatus] = useState<"checking" | "valid" | "expired" | "unknown">("checking");
 
     // New channel connect form
-    const [connectPageId, setConnectPageId] = useState("114336388182180");
-    const [connectPageName, setConnectPageName] = useState("HDG Wrap Sticker Film Skin");
+    const [connectPageId, setConnectPageId] = useState(process.env.NEXT_PUBLIC_FB_PAGE_ID || "");
+    const [connectPageName, setConnectPageName] = useState("");
     const [connectToken, setConnectToken] = useState("");
     const [connecting, setConnecting] = useState(false);
     const [connectMsg, setConnectMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -208,7 +208,7 @@ export default function SettingsPanel() {
         try {
             const data = await post<{ id: string }>("/api/chat/channels", {
                 type: "MESSENGER",
-                name: connectPageName || "HDG Wrap Messenger",
+                name: connectPageName || "Messenger Channel",
                 config: {
                     pageId: connectPageId,
                     pageName: connectPageName,
@@ -499,7 +499,7 @@ export default function SettingsPanel() {
                                     value={connectPageId}
                                     onChange={(e) => setConnectPageId(e.target.value)}
                                     className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-white text-sm placeholder-surface-500 focus:outline-none focus:border-brand-500"
-                                    placeholder="114336388182180"
+                                    placeholder="Page ID ของคุณ"
                                 />
                             </div>
                             <div>
@@ -508,7 +508,7 @@ export default function SettingsPanel() {
                                     value={connectPageName}
                                     onChange={(e) => setConnectPageName(e.target.value)}
                                     className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-white text-sm placeholder-surface-500 focus:outline-none focus:border-brand-500"
-                                    placeholder="HDG Wrap Sticker Film Skin"
+                                    placeholder="ชื่อเพจ Facebook ของคุณ"
                                 />
                             </div>
                             <div>
@@ -517,7 +517,7 @@ export default function SettingsPanel() {
                                     <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline">
                                         Graph API Explorer
                                     </a>
-                                    {" "}→ App 1417314816291087)
+                                    {" "}→ App ของคุณ)
                                 </label>
                                 <textarea
                                     value={connectToken}
@@ -569,7 +569,7 @@ export default function SettingsPanel() {
                             [
                                 { step: 1, text: <Trans th="เข้าไปที่เว็บไซต์" en="Go to" />, link: "Graph API Explorer", url: "https://developers.facebook.com/tools/explorer/" },
                                 { step: 2, text: <Trans th='เลือกช่อง App เป็นชื่อ App ของคุณ' en='Choose your App' /> },
-                                { step: 3, text: <Trans th='เลือกช่อง Page เป็นเพจ "HDG wrap sticker..."' en='Select Page "HDG wrap sticker..."' /> },
+                                { step: 3, text: <Trans th='เลือกช่อง Page เป็นเพจของคุณ' en='Select your Page' /> },
                                 { step: 4, text: <Trans th="เพิ่ม Permissions:" en="Add Permissions:" />, code: "pages_messaging" },
                                 { step: 5, text: <Trans th='กดปุ่ม "Generate Access Token"' en='Press "Generate Access Token"' /> },
                                 { step: 6, text: <Trans th='นำ Token ใหม่ที่ได้ มาวางในช่องด้านบน' en='Copy the Token and paste it above' /> },

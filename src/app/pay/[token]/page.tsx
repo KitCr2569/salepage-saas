@@ -414,7 +414,7 @@ export default function PaymentPage() {
                                             <p className="text-xs text-gray-500 mb-2">{t.receiptPreview[lang]}</p>
                                             <div className="flex items-end justify-between">
                                                 <div>
-                                                    <p className="text-sm font-bold text-gray-700">{receiptAuthorName || "HDG"}</p>
+                                                    <p className="text-sm font-bold text-gray-700">{receiptAuthorName || "Shop"}</p>
                                                     <p className="text-xs text-gray-400">{t.authorizedSigner[lang]}</p>
                                                 </div>
                                                 {receiptSig && <img src={receiptSig} alt="ลายเซ็น" className="h-12 object-contain" />}

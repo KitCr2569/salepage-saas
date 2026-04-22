@@ -114,10 +114,10 @@ async function getFallbackShop(): Promise<TenantContext> {
     if (!shop) {
         shop = await prisma.shop.create({
             data: {
-                pageId: '114336388182180',
-                slug: 'hdgwrapskin',
-                name: 'HDG Wrap',
-                currency: 'THB',
+                slug: process.env.NEXT_PUBLIC_SHOP_SLUG || 'default',
+                pageId: process.env.FACEBOOK_PAGE_ID || '',
+                domain: null,
+                name: process.env.NEXT_PUBLIC_SHOP_NAME || 'Shop',
                 currencySymbol: '฿',
             },
         });

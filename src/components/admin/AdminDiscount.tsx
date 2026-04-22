@@ -34,7 +34,7 @@ export default function AdminDiscount() {
 
     const openAdd = () => {
         setEditingId(null);
-        setForm({ ...emptyDiscount, code: `HDG${Math.floor(Math.random() * 100)}` });
+        setForm({ ...emptyDiscount, code: `SHOP${Math.floor(Math.random() * 100)}` });
         setModalOpen(true);
     };
 
@@ -341,7 +341,7 @@ export default function AdminDiscount() {
                                     type="text"
                                     value={form.code}
                                     onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                                    placeholder={(typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "such as HDG10" : "เช่น HDG10")}
+                                    placeholder={(typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "such as SHOP10" : "เช่น SHOP10")}
                                     className="w-full px-4 py-2.5 bg-pink-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-pink-300 font-mono font-bold tracking-wider"
                                 />
                             </div>

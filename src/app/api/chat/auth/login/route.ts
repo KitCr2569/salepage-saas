@@ -16,7 +16,7 @@ const MOCK_AGENTS = [
         email: 'admin@hdg.com',
         password: 'admin123',
         passwordHash: '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu.1u',
-        name: 'Admin HDG',
+        name: 'Admin',
         role: 'ADMIN' as const,
         avatarUrl: null,
     },

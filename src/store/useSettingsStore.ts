@@ -198,9 +198,9 @@ export const useSettingsStore = create<SettingsStore>()(
 
             // Bank account
             bankAccount: {
-                accountName: "Kittichai Bunsuk",
-                bankName: "Kasikornbank",
-                accountNumber: "053-150-6329",
+                accountName: "",
+                bankName: "",
+                accountNumber: "",
             },
             setBankAccount: (data) =>
                 set((state) => ({
@@ -238,7 +238,7 @@ export const useSettingsStore = create<SettingsStore>()(
             // Receipt
             receiptEnabled: true,
             setReceiptEnabled: (val) => set({ receiptEnabled: val }),
-            receiptName: "HDG",
+            receiptName: "",
             setReceiptName: (val) => set({ receiptName: val }),
             receiptSignature: null,
             setReceiptSignature: (img) => set({ receiptSignature: img }),
@@ -248,7 +248,7 @@ export const useSettingsStore = create<SettingsStore>()(
             setCustomerEditAddress: (val) => set({ customerEditAddress: val }),
 
             // Social & Contact links
-            lineUrl: "https://line.me/ti/p/hdgwrap",
+            lineUrl: "",
             setLineUrl: (val) => set({ lineUrl: val }),
             phoneNumber: "+66891234567",
             setPhoneNumber: (val) => set({ phoneNumber: val }),
@@ -440,13 +440,13 @@ export const useSettingsStore = create<SettingsStore>()(
                     ) || undefined,
                     orderFieldsEnabled: state.orderFieldsEnabled ?? true,
                     receiptEnabled: state.receiptEnabled ?? true,
-                    receiptName: state.receiptName ?? "HDG",
+                    receiptName: state.receiptName ?? "",
                     receiptSignature: state.receiptSignature ?? null,
                     customerEditAddress: state.customerEditAddress ?? true,
                     addressRequired: state.addressRequired ?? "required",
                     emailRequired: state.emailRequired ?? "off",
                     phoneRequired: state.phoneRequired ?? "required",
-                    lineUrl: state.lineUrl ?? "https://line.me/ti/p/hdgwrap",
+                    lineUrl: state.lineUrl ?? "",
                     phoneNumber: state.phoneNumber ?? "+66891234567",
                     refundPolicyUrl: state.refundPolicyUrl ?? "",
                     salePageTheme: state.salePageTheme ?? "midnight",

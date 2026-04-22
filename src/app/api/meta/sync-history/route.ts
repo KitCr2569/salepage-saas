@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         });
         if (!channel) {
             channel = await prisma.channel.create({
-                data: { type: 'MESSENGER', name: 'HDG Wrap Facebook', config: { pageId: PAGE_ID } },
+                data: { type: 'MESSENGER', name: process.env.NEXT_PUBLIC_SHOP_NAME || 'Messenger Channel', config: { pageId: PAGE_ID } },
             });
         }
 
@@ -173,7 +173,7 @@ export async function POST(request: Request) {
                             content: content || (messageType === 'IMAGE' ? '📷 รูปภาพ' : '📎 ไฟล์แนบ'),
                             imageUrl,
                             platformMessageId: msg.id,
-                            senderName: isFromPage ? 'HDG Wrapskin' : displayName,
+                            senderName: isFromPage ? ((channel.config as any)?.pageName || process.env.NEXT_PUBLIC_SHOP_NAME || 'Shop') : displayName,
                             createdAt: msg.created_time ? new Date(msg.created_time) : new Date(),
                         },
                     });

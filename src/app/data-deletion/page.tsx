@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-      title: "Data Deletion Instructions | HDG Premium Shop",
-      description: "User data deletion instructions for HDG Premium Shop",
+      title: `Data Deletion Instructions | ${process.env.NEXT_PUBLIC_SHOP_NAME || "Shop"}`,
+      description: `User data deletion instructions for ${process.env.NEXT_PUBLIC_SHOP_NAME || "our shop"}`,
 };
 
 export default function DataDeletionPage() {
@@ -18,7 +18,7 @@ export default function DataDeletionPage() {
                   <section className="mb-8">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">Deleting Your Data</h2>
                     <p className="text-gray-600 leading-relaxed mb-4">
-                      HDG Premium Shop respects your privacy rights. You can request deletion of all your
+                       We respect your privacy rights. You can request deletion of all your
                 personal data at any time by following the steps below.
                               </p>
                             </section>
@@ -39,7 +39,7 @@ export default function DataDeletionPage() {
                                   <div>
                                     <h3 className="font-semibold text-gray-800 mb-1">Send Email Request</h3>
                                     <p className="text-gray-600 text-sm">
-                                      Send an email to <a href="mailto:kittichai15.16@hotmail.com" className="text-blue-600 underline">kittichai15.16@hotmail.com</a> with
+                                      Send an email to <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@example.com'}`} className="text-blue-600 underline">{process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@example.com'}</a> with
                                       subject &quot;Delete My Personal Data&quot; and include your Facebook account name.
                                     </p>
                                   </div>
@@ -85,7 +85,7 @@ export default function DataDeletionPage() {
                                 If you have questions about data deletion, please contact us at:
                               </p>
                               <ul className="list-none text-gray-600 space-y-2 mt-3 ml-4">
-                                <li>Email: <a href="mailto:kittichai15.16@hotmail.com" className="text-blue-600 hover:text-blue-800 underline">kittichai15.16@hotmail.com</a></li>
+                                <li>Email: <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@example.com'}`} className="text-blue-600 hover:text-blue-800 underline">{process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@example.com'}</a></li>
                     </ul>
                             </section>
                           </div>

@@ -935,7 +935,7 @@ export default function AdminOrders({ isActive, focusOrderId }: { isActive?: boo
                                                 type="text"
                                                 value={senderInfo.name}
                                                 onChange={(e) => setSenderInfo({ ...senderInfo, name: e.target.value })}
-                                                placeholder={(typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "such as Kittichai Bunsuk" : "เช่น กิตติชัย บุญสุข")}
+                                                placeholder={(typeof window !== 'undefined' && window.localStorage.getItem('hdg-locale') === 'en' ? "such as John Smith" : "เช่น สมชาย ใจดี")}
                                                 className="w-full px-3 py-2 bg-white rounded-lg text-sm border border-amber-200 outline-none focus:ring-2 focus:ring-amber-300"
                                             />
                                         </div>

@@ -58,7 +58,7 @@ export default function AdminSalePage() {
 
     const handlePreview = () => {
         handleSave();
-        const pageId = connectedPage?.id || "114336388182180";
+        const pageId = connectedPage?.id || process.env.NEXT_PUBLIC_FB_PAGE_ID || "";
         setTimeout(() => window.open(`/${pageId}`, "_blank"), 200);
     };
 
@@ -174,7 +174,7 @@ export default function AdminSalePage() {
                             Facebook Page
                         </label>
                         <div className="flex items-center gap-2">
-                            <input type="text" value={`https://www.facebook.com/${connectedPage?.id || '114336388182180'}`} disabled className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl text-sm text-gray-400 outline-none cursor-not-allowed" />
+                            <input type="text" value={`https://www.facebook.com/${connectedPage?.id || process.env.NEXT_PUBLIC_FB_PAGE_ID || ''}`} disabled className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl text-sm text-gray-400 outline-none cursor-not-allowed" />
                             <span className="text-[10px] text-blue-500 bg-blue-50 px-2 py-1 rounded-lg whitespace-nowrap">{<Trans th="อัตโนมัติจากเพจที่เชื่อมต่อ" en="automatically from the connected page" />}</span>
                         </div>
                     </div>
@@ -185,7 +185,7 @@ export default function AdminSalePage() {
                             Messenger
                         </label>
                         <div className="flex items-center gap-2">
-                            <input type="text" value={`https://m.me/${connectedPage?.id || '114336388182180'}`} disabled className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl text-sm text-gray-400 outline-none cursor-not-allowed" />
+                            <input type="text" value={`https://m.me/${connectedPage?.id || process.env.NEXT_PUBLIC_FB_PAGE_ID || ''}`} disabled className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl text-sm text-gray-400 outline-none cursor-not-allowed" />
                             <span className="text-[10px] text-purple-500 bg-purple-50 px-2 py-1 rounded-lg whitespace-nowrap">{<Trans th="อัตโนมัติจากเพจที่เชื่อมต่อ" en="automatically from the connected page" />}</span>
                         </div>
                     </div>

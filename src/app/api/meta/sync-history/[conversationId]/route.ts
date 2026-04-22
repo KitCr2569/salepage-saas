@@ -111,7 +111,7 @@ export async function POST(request: Request, context: { params: { conversationId
                     content: content || (messageType === 'IMAGE' ? '📷 รูปภาพ' : '📎 ไฟล์แนบ'),
                     imageUrl,
                     platformMessageId: msg.id,
-                    senderName: isFromPage ? 'HDG Wrapskin' : displayName,
+                    senderName: isFromPage ? ((conversation.channel.config as any)?.pageName || process.env.NEXT_PUBLIC_SHOP_NAME || 'Shop') : displayName,
                     createdAt: msg.created_time ? new Date(msg.created_time) : new Date(),
                 },
             });

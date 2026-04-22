@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, Package, Truck, MapPin, ShoppingCart } from "lucide-react";
 import { products as allProducts } from "@/data";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useShopStore } from "@/store/useShopStore";
 import { ShippingLogoIcon } from "@/components/ShippingLogos";
 import Swal from 'sweetalert2';
 
@@ -34,6 +35,7 @@ export default function OrderPage() {
 
     // Admin settings
     const { shippingMethods: storeShipping, addressRequired, phoneRequired, emailRequired, customerEditAddress, receiptEnabled, receiptName: receiptAuthorName, receiptSignature: receiptSig } = useSettingsStore();
+    const { shopConfig } = useShopStore();
     const [hydrated, setHydrated] = useState(false);
     useEffect(() => setHydrated(true), []);
     const showAddress = !hydrated || addressRequired !== "off";
@@ -158,7 +160,7 @@ export default function OrderPage() {
                 <div className="bg-white border-b border-gray-200 fixed top-0 w-full z-10">
                     <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-gray-800 truncate">HDG Wrap</span>
+                            <span className="text-sm font-bold text-gray-800 truncate">{shopConfig.shopName}</span>
                         </div>
                     </div>
                 </div>
@@ -190,7 +192,7 @@ export default function OrderPage() {
                 <div className="bg-white border-b border-gray-200 fixed top-0 w-full z-10">
                     <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-gray-800 truncate">HDG Wrap</span>
+                            <span className="text-sm font-bold text-gray-800 truncate">{shopConfig.shopName}</span>
                         </div>
                     </div>
                 </div>
@@ -227,10 +229,10 @@ export default function OrderPage() {
             <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <a href="https://www.hdgwrapskin.com" className="p-1.5 hover:bg-gray-100 rounded-full">
+                        <a href="/" className="p-1.5 hover:bg-gray-100 rounded-full">
                             <ArrowLeft className="w-5 h-5 text-gray-600" />
                         </a>
-                        <span className="text-sm font-medium text-gray-800">HDG Wrap</span>
+                        <span className="text-sm font-medium text-gray-800">{shopConfig.shopName}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <span className="text-lg">🇹🇭</span>
@@ -518,7 +520,7 @@ export default function OrderPage() {
                                         <p className="text-xs text-gray-500 mb-2">ตัวอย่างลายเซ็นในใบเสร็จ</p>
                                         <div className="flex items-end justify-between">
                                             <div>
-                                                <p className="text-sm font-bold text-gray-700">{receiptAuthorName || "HDG"}</p>
+                                                <p className="text-sm font-bold text-gray-700">{receiptAuthorName || "Shop"}</p>
                                                 <p className="text-xs text-gray-400">ผู้มีอำนาจลงนาม</p>
                                             </div>
                                             {receiptSig && (

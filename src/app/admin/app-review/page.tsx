@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Facebook, CheckCircle, AlertTriangle, Send, RefreshCw, Zap, BarChart3, ShieldCheck, Server, ArrowRight, ExternalLink } from "lucide-react";
 
-const FACEBOOK_APP_ID = "1417314816291087";
+const FACEBOOK_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1417314816291087";
 const FB_SCOPE = "pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,marketing_messages_messenger,ads_management";
 
 // Caption component with English text
@@ -43,7 +43,7 @@ export default function AppReviewDemoPage() {
 
     const redirectUri = typeof window !== 'undefined'
         ? `${window.location.origin}/admin/auth/callback`
-        : 'https://www.hdgwrapskin.com/admin/auth/callback';
+        : `${process.env.NEXT_PUBLIC_APP_URL || 'https://localhost:3000'}/admin/auth/callback`;
 
     const loginUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${FB_SCOPE}&response_type=token`;
 
@@ -95,7 +95,7 @@ export default function AppReviewDemoPage() {
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div>
                         <h1 className="text-xl font-bold text-gray-900">App Review — End-to-End Demo</h1>
-                        <p className="text-xs text-gray-500">App ID: {FACEBOOK_APP_ID} | HDG Wrap Skin E-Commerce Platform</p>
+                        <p className="text-xs text-gray-500">App ID: {FACEBOOK_APP_ID} | E-Commerce SaaS Platform</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <StatusBadge ok={isLoggedIn} label={isLoggedIn ? `Logged in as ${userName}` : "Not logged in"} />
@@ -118,7 +118,7 @@ export default function AppReviewDemoPage() {
 
                 {/* ═══ INTRO ═══ */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-3">🏪 HDG Wrap Skin — E-Commerce Platform</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-3">🏪 E-Commerce SaaS Platform</h2>
                     <p className="text-gray-600 text-sm leading-relaxed mb-4">
                         This application is an e-commerce platform integrated with Facebook Messenger. 
                         It enables business owners to manage their online store, process orders, and communicate 
@@ -486,7 +486,7 @@ export default function AppReviewDemoPage() {
                 </div>
 
                 <p className="text-center text-xs text-gray-400 pb-8">
-                    End of App Review Demonstration — HDG Wrap Skin E-Commerce Platform
+                    End of App Review Demonstration — E-Commerce SaaS Platform
                 </p>
             </div>
         </div>

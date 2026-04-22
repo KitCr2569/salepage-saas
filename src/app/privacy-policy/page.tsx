@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 export const metadata: Metadata = {
-      title: "Privacy Policy | HDG Premium Shop",
-      description: "Privacy Policy for HDG Premium Shop",
+      title: `Privacy Policy | ${process.env.NEXT_PUBLIC_SHOP_NAME || "Shop"}`,
+      description: `Privacy Policy for ${process.env.NEXT_PUBLIC_SHOP_NAME || "our shop"}`,
 };
 export default function PrivacyPolicyPage() {
       return (
@@ -36,7 +36,7 @@ export default function PrivacyPolicyPage() {
                   </section>
                   <section className="mb-8">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">7. Data Deletion</h2>
-                    <p className="text-gray-600 leading-relaxed">You can request deletion of all personal data at any time. Visit our data deletion page or contact us via email at kittichai15.16@hotmail.com</p>
+                    <p className="text-gray-600 leading-relaxed">You can request deletion of all personal data at any time. Visit our data deletion page or contact us via email at {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@example.com'}</p>
                   </section>
                   <section className="mb-8">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">8. Policy Changes</h2>
@@ -44,7 +44,7 @@ export default function PrivacyPolicyPage() {
                   </section>
                   <section>
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">9. Contact Us</h2>
-                    <p className="text-gray-600 leading-relaxed">Questions about this privacy policy? Contact us at kittichai15.16@hotmail.com</p>
+                    <p className="text-gray-600 leading-relaxed">Questions about this privacy policy? Contact us at {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@example.com'}</p>
                   </section>
                 </div>
               </div>

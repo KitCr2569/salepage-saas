@@ -43,7 +43,7 @@ export default function AdminTikTok() {
                             type="text"
                             value={tiktokAccount}
                             onChange={e => setTiktokAccount(e.target.value)}
-                            placeholder="@hdgwrapskin"
+                            placeholder="@yourshop"
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-500/30"
                         />
                     </div>

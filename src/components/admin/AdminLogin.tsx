@@ -22,7 +22,7 @@ const FB_SCOPE = "pages_show_list,pages_messaging,pages_manage_metadata,pages_re
 // ── Use <a> tag for maximum compatibility on Chrome Mobile / PWA standalone
 function FacebookLoginButton({ appId }: { appId: string }) {
     const { t } = useLocaleStore();
-    const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/admin/auth/callback` : 'https://www.hdgwrapskin.com/admin/auth/callback';
+    const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/admin/auth/callback` : `${process.env.NEXT_PUBLIC_APP_URL || 'https://localhost:3000'}/admin/auth/callback`;
     const href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${FB_SCOPE}&response_type=token`;
     return (
         <a

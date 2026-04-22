@@ -11,9 +11,9 @@ async function getSettings() {
         if (!shop) {
             shop = await prisma.shop.create({
                 data: {
-                    pageId: "114336388182180",
-                    slug: "hdgwrapskin",
-                    name: "HDG Wrap",
+                    pageId: process.env.FACEBOOK_PAGE_ID || "",
+                    slug: process.env.NEXT_PUBLIC_SHOP_SLUG || "default",
+                    name: process.env.NEXT_PUBLIC_SHOP_NAME || "Shop",
                     currency: "THB",
                     currencySymbol: "฿",
                 }

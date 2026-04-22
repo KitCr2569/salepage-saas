@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "HDG Admin",
+        title: `${process.env.NEXT_PUBLIC_SHOP_NAME || 'Shop'} Admin`,
     },
     other: {
         "mobile-web-app-capable": "yes",

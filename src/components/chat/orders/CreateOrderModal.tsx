@@ -1,7 +1,7 @@
 'use client';
 
 // ═══════════════════════════════════════════════════════════════
-// CreateOrderModal — Create order/bill with Product Picker from HDG Wrap
+// CreateOrderModal — Create order/bill with Product Picker from shop catalog
 // Fetches real products, shipping & payment from Sale Page API
 // ═══════════════════════════════════════════════════════════════
 
@@ -109,7 +109,7 @@ export default function CreateOrderModal({
     const [productSearch, setProductSearch] = useState('');
     const [selectedProduct, setSelectedProduct] = useState<ShopProduct | null>(null);
 
-    // Shipping & Payment from hdgwrapskin
+    // Shipping & Payment from shop settings
     const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [selectedShipping, setSelectedShipping] = useState<ShippingMethod | null>(null);
@@ -375,7 +375,7 @@ export default function CreateOrderModal({
                                 border: '1px solid rgba(255,255,255,0.06)', overflow: 'auto',
                             }} className="max-h-[50vh] lg:max-h-[70vh]">
                                 <span style={{ fontSize: '0.85rem', color: '#a78bfa', fontWeight: 700, display: 'block', marginBottom: '10px' }}>
-                                    <Trans th="🛒 เลือกสินค้าจากร้าน HDG Wrap" en="🛒 Choose products from HDG Wrap shop." />
+                                    <Trans th="🛒 เลือกสินค้าจากร้านค้า" en="🛒 Choose products from shop" />
                                                                     </span>
 
                                 {loadingProducts ? (

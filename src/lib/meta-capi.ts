@@ -4,6 +4,8 @@
 // Docs: https://developers.facebook.com/docs/marketing-api/conversions-api
 // ═══════════════════════════════════════════════════════════════
 
+import { getShopBaseUrl } from './url-helpers';
+
 const META_PIXEL_ID = process.env.META_PIXEL_ID || '';
 const META_CAPI_TOKEN = process.env.META_CAPI_TOKEN || process.env.META_PAGE_ACCESS_TOKEN || '';
 
@@ -92,7 +94,7 @@ export async function sendPurchaseEvent(data: PurchaseEventData): Promise<{
                     event_name: 'Purchase',
                     event_time: Math.floor(Date.now() / 1000),
                     event_id: `order_${data.orderNumber}_${Date.now()}`, // Deduplication key
-                    event_source_url: `https://www.hdgwrapskin.com/order/${data.orderNumber}`,
+                    event_source_url: `${getShopBaseUrl()}/order/${data.orderNumber}`,
                     action_source: 'website',
                     user_data: userData,
                     custom_data: {
@@ -158,7 +160,7 @@ export async function sendTestEvent(): Promise<{
         orderNumber: `TEST-${Date.now()}`,
         total: 1.00,
         currency: 'THB',
-        customerEmail: 'test@hdgwrapskin.com',
+        customerEmail: 'test@example.com',
         customerName: 'Test Customer',
         items: [{ name: 'Test Product', quantity: 1, price: 1.00 }],
     });

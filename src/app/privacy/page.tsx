@@ -1,4 +1,8 @@
 export default function PrivacyPolicy() {
+    const shopName = process.env.NEXT_PUBLIC_SHOP_NAME || "ร้านค้าของเรา";
+    const shopUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+    const fbPageId = process.env.NEXT_PUBLIC_FB_PAGE_ID || "114336388182180";
+
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px', fontFamily: 'sans-serif', lineHeight: '1.8', color: '#333' }}>
             <h1 style={{ fontSize: '28px', marginBottom: '20px' }}>นโยบายความเป็นส่วนตัว (Privacy Policy)</h1>
@@ -45,12 +49,13 @@ export default function PrivacyPolicy() {
             </ul>
 
             <h2 style={{ fontSize: '20px', marginTop: '30px' }}>7. การลบข้อมูล</h2>
-            <p>หากท่านต้องการให้ลบข้อมูลของท่านออกจากระบบ สามารถติดต่อเราได้ที่ Facebook Page: HDG wrap sticker film skin หรือส่งข้อความผ่าน Messenger</p>
+            <p>หากท่านต้องการให้ลบข้อมูลของท่านออกจากระบบ สามารถติดต่อเราได้ที่ Facebook Page: {shopName} หรือส่งข้อความผ่าน Messenger</p>
 
             <h2 style={{ fontSize: '20px', marginTop: '30px' }}>8. ติดต่อเรา</h2>
-            <p>HDG wrap sticker film skin สติ๊กเกอร์กันรอย ฟิล์มกันรอย กล้อง เลนส์ มือถือ</p>
-            <p>Facebook Page: <a href="https://www.facebook.com/114336388182180" style={{ color: '#1877F2' }}>HDG wrap sticker film skin</a></p>
-            <p>เว็บไซต์: <a href="https://www.hdgwrapskin.com" style={{ color: '#1877F2' }}>www.hdgwrapskin.com</a></p>
+            <p>{shopName}</p>
+            <p>Facebook Page: <a href={`https://www.facebook.com/${fbPageId}`} style={{ color: '#1877F2' }}>{shopName}</a></p>
+            {shopUrl && <p>เว็บไซต์: <a href={shopUrl} style={{ color: '#1877F2' }}>{shopUrl.replace(/^https?:\/\//, '')}</a></p>}
         </div>
     );
 }
+

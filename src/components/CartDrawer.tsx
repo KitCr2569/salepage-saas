@@ -7,7 +7,7 @@ import { X, Minus, Plus, Trash2, Send } from "lucide-react";
 import { useState } from "react";
 import { Trans } from "@/components/Trans";
 
-const FACEBOOK_PAGE_ID = "114336388182180";
+const FACEBOOK_PAGE_ID = process.env.NEXT_PUBLIC_FB_PAGE_ID || "";
 
 export default function CartDrawer() {
     const {

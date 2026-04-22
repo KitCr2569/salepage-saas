@@ -17,7 +17,7 @@ export default function Footer({ pageId }: FooterProps) {
     const theme = getThemeById(salePageTheme);
 
     // Use pageId for Facebook/Messenger links, fallback to HDG page
-    const fbPageId = pageId || "114336388182180";
+    const fbPageId = pageId || process.env.NEXT_PUBLIC_FB_PAGE_ID || "";
     const fbLink = `https://www.facebook.com/${fbPageId}`;
     const messengerLink = `https://m.me/${fbPageId}`;
 
@@ -59,7 +59,7 @@ export default function Footer({ pageId }: FooterProps) {
                         <span className="text-xs font-medium text-gray-700">Messenger</span>
                     </a>
                     <a
-                        href={lineUrl || "https://line.me/ti/p/hdgwrap"}
+                        href={lineUrl || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-green-50 hover:bg-green-100 transition-colors"

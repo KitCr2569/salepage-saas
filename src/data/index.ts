@@ -195,8 +195,8 @@ export const products: Product[] = [
 ];
 
 export const shopConfig = {
-    shopName: "HDG wrap sticker film skin สติ๊กเกอร์กันรอย ฟิล์มกันรอย กล้อง เลนส์ มือถือ",
-    shopLogo: "https://graph.facebook.com/114336388182180/picture?width=500&height=500",
+    shopName: process.env.NEXT_PUBLIC_SHOP_NAME || "ร้านค้าออนไลน์",
+    shopLogo: process.env.NEXT_PUBLIC_SHOP_LOGO || "",
     currency: "THB",
     currencySymbol: "฿",
 };

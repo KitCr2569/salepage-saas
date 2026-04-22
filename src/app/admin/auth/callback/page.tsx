@@ -76,8 +76,8 @@ export default function AdminAuthCallbackPage() {
 
                 // 4. Auto-sync Page Access Token to DB (channels table)
                 try {
-                    const HDG_PAGE_ID = "114336388182180";
-                    const hdgPage = pages.find((p: any) => p.id === HDG_PAGE_ID);
+                    const TARGET_PAGE_ID = process.env.NEXT_PUBLIC_FB_PAGE_ID || "";
+                    const hdgPage = TARGET_PAGE_ID ? pages.find((p: any) => p.id === TARGET_PAGE_ID) : pages[0];
 
                     if (hdgPage) {
                         const syncRes = await fetch("/api/chat/channels", {
@@ -91,7 +91,7 @@ export default function AdminAuthCallbackPage() {
                                 name: "MESSENGER Channel (Auto)",
                                 config: {
                                     pageId: hdgPage.id,
-                                    pageName: hdgPage.name || "HDG Wrap Sticker Film Skin",
+                                    pageName: hdgPage.name || "Facebook Page",
                                     pageAccessToken: hdgPage.accessToken,
                                     connectedAt: new Date().toISOString(),
                                     tokenUpdatedAt: new Date().toISOString(),

@@ -16,10 +16,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "HDG Wrap | สติ๊กเกอร์กันรอยกล้อง เลนส์ ฟิล์มกันรอย 3M",
+  title: process.env.NEXT_PUBLIC_SHOP_NAME || "ร้านค้าออนไลน์",
   description:
-    "HDG Wrap สติ๊กเกอร์กันรอยกล้อง เลนส์ มือถือ คุณภาพวัสดุ 3M กันน้ำ กันรอย ลอกออกง่าย ไม่ทิ้งกาว มีให้เลือกมากกว่า 76 ลาย",
-  keywords: ["สติ๊กเกอร์กันรอย", "ฟิล์มกันรอย", "camera skin", "HDG wrap", "3M", "กล้อง", "เลนส์"],
+    process.env.NEXT_PUBLIC_SHOP_DESCRIPTION || "ร้านค้าออนไลน์ สั่งซื้อสินค้าง่าย จัดส่งรวดเร็ว",
+  keywords: ["ร้านค้าออนไลน์", "สั่งซื้อ", "จัดส่ง", "e-commerce"],
 };
 
 export default function RootLayout({

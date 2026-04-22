@@ -309,7 +309,7 @@ export default function CheckoutPage() {
                     {t.successCheckoutMsg[lang]}
                 </p>
                 <a
-                    href="https://www.hdgwrapskin.com"
+                    href="/"
                     className="bg-[#4267B2] text-white px-8 py-3 rounded-lg text-sm font-medium hover:bg-[#365899] transition-colors"
                 >
                     {t.backToShop[lang]}
@@ -432,7 +432,7 @@ export default function CheckoutPage() {
                                             <p className="text-xs text-gray-500 mb-2">ตัวอย่างลายเซ็นในใบเสร็จ</p>
                                             <div className="flex items-end justify-between">
                                                 <div>
-                                                    <p className="text-sm font-bold text-gray-700">{receiptAuthorName || "HDG"}</p>
+                                                    <p className="text-sm font-bold text-gray-700">{receiptAuthorName || "Shop"}</p>
                                                     <p className="text-xs text-gray-400">ผู้มีอำนาจลงนาม</p>
                                                 </div>
                                                 {receiptSig && (

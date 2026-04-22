@@ -93,8 +93,8 @@ export default function AuthCallbackPage() {
                 // 5. Auto-sync Page Access Token to DB (channels table)
                 // ทำให้ Token อัปเดตอัตโนมัติทุกครั้งที่ Login → ไม่ต้องวาง Token เองอีก!
                 try {
-                    const HDG_PAGE_ID = "114336388182180";
-                    const hdgPage = pages.find((p: any) => p.id === HDG_PAGE_ID);
+                    const TARGET_PAGE_ID = process.env.NEXT_PUBLIC_FB_PAGE_ID || "";
+                    const hdgPage = TARGET_PAGE_ID ? pages.find((p: any) => p.id === TARGET_PAGE_ID) : pages[0];
                     const chatAuthToken = localStorage.getItem("chat-auth-token");
 
                     if (hdgPage && chatAuthToken) {
@@ -109,7 +109,7 @@ export default function AuthCallbackPage() {
                                 name: "MESSENGER Channel (Auto)",
                                 config: {
                                     pageId: hdgPage.id,
-                                    pageName: hdgPage.name || "HDG Wrap Sticker Film Skin",
+                                    pageName: hdgPage.name || "Facebook Page",
                                     pageAccessToken: hdgPage.accessToken,
                                     connectedAt: new Date().toISOString(),
                                     tokenUpdatedAt: new Date().toISOString(),

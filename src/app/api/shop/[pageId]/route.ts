@@ -168,7 +168,7 @@ export async function POST(
             },
         });
 
-        // Don't auto-seed products here — only GET handler seeds for HDG page
+        // Don't auto-seed products here — only GET handler seeds for the primary page
 
         return NextResponse.json({ success: true, data: { shopId: shop.id } });
     } catch (error) {
@@ -181,12 +181,12 @@ export async function POST(
 }
 
 // ─── Helper: Seed default shop ──────────────────────────────────
-const HDG_PAGE_ID = "114336388182180";
+const PRIMARY_PAGE_ID = process.env.FACEBOOK_PAGE_ID || "";
 
 async function seedDefaultShop(pageId: string) {
     // Generate slug
-    const slug = pageId === HDG_PAGE_ID
-        ? "hdgwrapskin"
+    const slug = (PRIMARY_PAGE_ID && pageId === PRIMARY_PAGE_ID)
+        ? (process.env.NEXT_PUBLIC_SHOP_SLUG || "default")
         : `shop-${pageId.slice(-8)}`;
 
     // Create shop
@@ -194,15 +194,15 @@ async function seedDefaultShop(pageId: string) {
         data: {
             pageId,
             slug,
-            name: pageId === HDG_PAGE_ID ? defaultShopConfig.shopName : "ร้านค้าใหม่",
-            logo: pageId === HDG_PAGE_ID ? defaultShopConfig.shopLogo : null,
+            name: (PRIMARY_PAGE_ID && pageId === PRIMARY_PAGE_ID) ? defaultShopConfig.shopName : "ร้านค้าใหม่",
+            logo: (PRIMARY_PAGE_ID && pageId === PRIMARY_PAGE_ID) ? defaultShopConfig.shopLogo : null,
             currency: defaultShopConfig.currency,
             currencySymbol: defaultShopConfig.currencySymbol,
         },
     });
 
-    // เฉพาะ HDG page จะ seed สินค้า default — เพจอื่น ๆ เริ่มจากร้านเปล่า
-    if (pageId === HDG_PAGE_ID) {
+    // เฉพาะ primary page จะ seed สินค้า default — เพจอื่น ๆ เริ่มจากร้านเปล่า
+    if (PRIMARY_PAGE_ID && pageId === PRIMARY_PAGE_ID) {
         await seedDefaultProducts(shop.id);
     }
 
