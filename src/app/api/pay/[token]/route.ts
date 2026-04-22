@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAutoCancelMsg, getPaymentConfirmation, getAdminNotification, getAdminPaymentPreview, fillTemplate, getTrackingButtonMsg, getTrackingButtonTitle } from '@/lib/template-loader';
 import { getFacebookPageConfig } from '@/lib/facebook';
+import { getShopBaseUrl, getOrderUrl } from '@/lib/url-helpers';
 
 
 // ─── Simple in-memory rate limiter ───────────────────────────
@@ -84,7 +85,7 @@ export async function GET(
                             const itemLines = items.map((item: any) =>
                                 `   • ${item.name}${item.variantName ? ` (${item.variantName})` : ''} x${item.quantity || 1}`
                             ).join('\n');
-                            const shopUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com';
+                            const shopUrl = getShopBaseUrl();
                             const msg = await getAutoCancelMsg({
                                 orderNumber: ecomOrder.orderNumber,
                                 customerName: customerData.name || ecomOrder.facebookName || 'ลูกค้า',
@@ -464,7 +465,7 @@ export async function POST(
                                                 buttons: [{
                                                     type: "web_url",
                                                     title: getTrackingButtonTitle(),
-                                                    url: `https://www.hdgwrapskin.com/order/${order.id}`
+                                                    url: getOrderUrl(order.id)
                                                 }]
                                             }
                                         }

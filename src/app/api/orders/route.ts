@@ -11,6 +11,7 @@ import { getFacebookPageConfig } from '@/lib/facebook';
 import { sendPurchaseEvent, isMetaCAPIConfigured } from '@/lib/meta-capi';
 import { getShopFromRequest } from '@/lib/tenant';
 import { deductStock, restoreStock, extractCartItemsForStock } from '@/lib/stock';
+import { getShopBaseUrl, getAdminUrl, getPaymentUrl } from '@/lib/url-helpers';
 
 
 export const dynamic = 'force-dynamic';
@@ -444,7 +445,7 @@ async function syncToHaravan(orderData: any) {
     try {
         const baseUrl = process.env.VERCEL_URL
             ? `https://${process.env.VERCEL_URL}`
-            : process.env.NEXT_PUBLIC_APP_URL || "https://www.hdgwrapskin.com";
+            : getShopBaseUrl();
 
         const { pageAccessToken, pageId } = await getFacebookPageConfig(orderData.shopId ? { headers: new Headers({ 'x-shop-id': orderData.shopId }) } as any : undefined);
 
@@ -812,7 +813,7 @@ async function notifyAdminNewOrder(
         `📍 ที่อยู่: ${customer.address || "-"}\n\n` +
         `🛍️ สินค้า:\n${itemLines}\n\n` +
         `💰 ยอดรวม: ฿${total?.toLocaleString() || "0"}\n\n` +
-        `🔗 จัดการออเดอร์: https://www.hdgwrapskin.com/admin#Orders`;
+        `🔗 จัดการออเดอร์: ${getAdminUrl('Orders')}`;
 
     try {
         const res = await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, {
@@ -855,7 +856,7 @@ async function notifyCustomerNewOrder(
             `• ${item.name} ${item.variantName ? `[${item.variantName}] ` : ''}x${item.quantity} = ${fmt((item.price || 0) * item.quantity)} ฿`
         ).join('\n');
         
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.hdgwrapskin.com";
+        const baseUrl = getShopBaseUrl();
         const paymentLink = `${baseUrl}/pay/${dbOrder.orderNumber}`;
 
         const summaryMsg = [
@@ -922,7 +923,7 @@ async function notifyCustomerOrderCancelled(psid: string, dbOrder: any) {
             `   • ${item.name}${item.variantName ? ` (${item.variantName})` : ''} x${item.quantity || 1}`
         ).join('\n');
 
-        const shopUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com';
+        const shopUrl = getShopBaseUrl();
 
         const cancelMsg = [
             `━━━━━━━━━━━━━━━━━━`,

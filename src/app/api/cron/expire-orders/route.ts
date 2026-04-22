@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAutoCancelMsg, getFollowUpReminder } from '@/lib/template-loader';
 import { getFacebookPageConfig } from '@/lib/facebook';
+import { getShopBaseUrl } from '@/lib/url-helpers';
 
 
 export const dynamic = 'force-dynamic';
@@ -145,7 +146,7 @@ async function sendFollowUpReminder(order: any, token: string) {
         `   • ${item.name}${item.variantName ? ` (${item.variantName})` : ''} x${item.quantity || 1}`
     ).join('\n');
 
-    const shopUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com';
+    const shopUrl = getShopBaseUrl();
 
     const msg = await getFollowUpReminder({
         orderNumber: order.orderNumber,
@@ -187,7 +188,7 @@ async function notifyExpiredOrder(order: any, token: string) {
             `   • ${item.name}${item.variantName ? ` (${item.variantName})` : ''} x${item.quantity || 1}`
         ).join('\n');
 
-        const shopUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com';
+        const shopUrl = getShopBaseUrl();
         const orderDate = new Date(order.createdAt).toLocaleDateString('th-TH', {
             year: 'numeric', month: 'long', day: 'numeric',
             hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok',

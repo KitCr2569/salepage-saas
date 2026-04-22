@@ -8,6 +8,7 @@ import { verifyToken, extractTokenFromHeaders } from '@/lib/auth';
 import { randomBytes } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { getPayOrderSummary } from '@/lib/template-loader';
+import { getShopBaseUrl } from '@/lib/url-helpers';
 
 // ─── Mock orders (used when DB is unavailable) ──────────────
 const MOCK_ORDERS = [
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest) {
         try {
             // ⚡ Lazy Expiry: Trigger cron job manually when page is opened (non-blocking)
             try {
-                const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : (process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com');
+                const baseUrl = getShopBaseUrl();
                 fetch(`${baseUrl}/api/cron/expire-orders`, {
                     headers: { authorization: `Bearer ${process.env.CRON_SECRET || ''}` }
                 }).catch(() => { });
@@ -279,7 +280,7 @@ export async function POST(request: NextRequest) {
         const seq = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
         const orderNumber = `ORD-${dateStr}-${seq}`;
 
-        // ─── Sync order to Sale Page (hdgwrapskin) ─────────────
+        // ─── Sync order to Sale Page ─────────────
         const syncToSalePage = async (orderData: {
             orderNumber: string;
             customerName: string;
@@ -295,7 +296,7 @@ export async function POST(request: NextRequest) {
             facebookName?: string | null;
             adminFilledAddress?: boolean;
         }) => {
-            const SALEPAGE_URL = process.env.SALEPAGE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com';
+            const SALEPAGE_URL = process.env.SALEPAGE_URL || getShopBaseUrl();
             try {
                 await fetch(`${SALEPAGE_URL}/api/orders`, {
                     method: 'POST',
@@ -396,7 +397,7 @@ export async function POST(request: NextRequest) {
                 const itemLines = items.map((item: { name: string; quantity: number; unitPrice: number; variant?: string }) =>
                     `• ${item.name}${item.variant ? ` [${item.variant}]` : ''} x${item.quantity} = ${fmt(item.quantity * item.unitPrice)} ฿`
                 ).join('\n');
-                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com';
+                const baseUrl = getShopBaseUrl();
                 const paymentLink = `${baseUrl}/pay/${paymentToken}`;
 
                 const summaryMsg = await getPayOrderSummary({

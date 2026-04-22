@@ -20,8 +20,9 @@ export default function AdminProfile() {
     // ใช้ชื่อเพจจากเพจที่เชื่อมต่อ หรือใช้ shopConfig เป็น fallback
     const pageName = connectedPage?.name || shopConfig.shopName;
     const pageId = connectedPage?.id || "";
-    const ecommerceLink = pageId ? `https://www.hdgwrapskin.com/${pageId}` : "https://www.hdgwrapskin.com";
-    const salepageLink = pageId ? `https://www.hdgwrapskin.com/${pageId}` : "https://www.hdgwrapskin.com";
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const ecommerceLink = pageId ? `${baseUrl}/${pageId}` : baseUrl;
+    const salepageLink = pageId ? `${baseUrl}/${pageId}` : baseUrl;
 
     return (
         <div className="p-6 md:p-8">

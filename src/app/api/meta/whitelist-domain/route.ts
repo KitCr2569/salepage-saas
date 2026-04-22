@@ -1,6 +1,7 @@
 // One-time utility: Whitelist domain for Messenger Extensions
 import { NextResponse } from 'next/server';
 import { getFacebookPageConfig } from '@/lib/facebook';
+import { getShopBaseUrl } from '@/lib/url-helpers';
 
 
 export async function POST() {
@@ -18,13 +19,22 @@ export async function POST() {
         // Call Messenger Profile API to whitelist domain
         const { pageAccessToken, pageId } = await getFacebookPageConfig();
 
+        // Build domain list dynamically from app URL
+        const baseUrl = getShopBaseUrl();
+        const url = new URL(baseUrl);
+        const domains = [baseUrl];
+        // Also whitelist without www if it has www prefix
+        if (url.hostname.startsWith('www.')) {
+            domains.push(`${url.protocol}//${url.hostname.replace('www.', '')}`);
+        }
+
         const res = await fetch(
             `https://graph.facebook.com/v19.0/me/messenger_profile?access_token=${token}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    whitelisted_domains: ['https://www.hdgwrapskin.com', 'https://hdgwrapskin.com'],
+                    whitelisted_domains: domains,
                 }),
             }
         );

@@ -10,11 +10,7 @@ import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { broadcastMessage } from '@/lib/supabase';
 import { getOrderConfirmation, getTrackingButtonMsg, getTrackingButtonTitle, getAddressConfirm, getAddressConfirmWithNote, getCheckoutOrderSummary } from '@/lib/template-loader';
-
-// ─── Base URL Helper ──────────────────────────────────────────
-function getShopBaseUrl(): string {
-    return (process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com').replace(/\/$/, '');
-}
+import { getShopBaseUrl, getOrderUrl, getCheckoutUrl } from '@/lib/url-helpers';
 
 // ─── Token Helpers ────────────────────────────────────────────
 

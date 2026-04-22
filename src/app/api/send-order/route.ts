@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrderConfirmation, getTrackingButtonMsg, getTrackingButtonTitle } from '@/lib/template-loader';
 import { getFacebookPageConfig } from '@/lib/facebook';
+import { getOrderUrl } from '@/lib/url-helpers';
 
 
 export const dynamic = 'force-dynamic';
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
                         buttons: [{
                             type: "web_url",
                             title: getTrackingButtonTitle(),
-                            url: `https://www.hdgwrapskin.com/order/${orderNumber}`,
+                            url: getOrderUrl(orderNumber),
                         }],
                     },
                 },

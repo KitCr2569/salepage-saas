@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrderConfirmation, getTrackingButtonMsg, getTrackingButtonTitle } from '@/lib/template-loader';
 import { getFacebookPageConfig } from '@/lib/facebook';
+import { getOrderUrl } from '@/lib/url-helpers';
 
 
 const PAGE_ACCESS_TOKEN = process.env.META_PAGE_ACCESS_TOKEN || process.env.PAGE_ACCESS_TOKEN || '';
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
             const result = await callSendAPI({
                 messaging_type: 'RESPONSE',
                 recipient: { id: psid },
-                message: { text: `✅ ทดสอบระบบ Messenger สำเร็จ!\n\nส่งโดย Admin HDG Wrap\nเวลา: ${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}` },
+                message: { text: `✅ ทดสอบระบบ Messenger สำเร็จ!\n\nส่งโดย Admin\nเวลา: ${new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}` },
             });
             return NextResponse.json({ success: !result.error, result });
         }
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
             });
 
             const trackingMsg = await getTrackingButtonMsg(vars);
-            const trackingUrl = `https://www.hdgwrapskin.com/order/${orderNumber}?psid=${psid}`;
+            const trackingUrl = getOrderUrl(orderNumber, psid);
             const r2 = await callSendAPI({
                 messaging_type: 'RESPONSE',
                 recipient: { id: psid },
