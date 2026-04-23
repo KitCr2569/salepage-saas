@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
 
+export const dynamic = "force-dynamic";
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "tenant-secret-key");
 const ADMIN_EMAILS = ["admin@hdg.com"];
 
