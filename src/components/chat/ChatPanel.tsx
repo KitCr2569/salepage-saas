@@ -825,7 +825,7 @@ export function ChatPanel({ conversation, loading, onMessageSent, onOptimisticMe
                                             </div>
 
                                             {/* 🗑️ Unsend button — Show for all outbound messages on hover */}
-                                            {!isInbound && msg.sendStatus === 'SENT' && (
+                                            {!isInbound && (msg.sendStatus === 'SENT' || msg.sendStatus === 'READ') && (
                                                 <div className="absolute -left-20 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/msg:opacity-100 transition-all">
                                                     {confirmingDeleteId === msg.id && (
                                                         <span className="text-[10px] text-red-400 whitespace-nowrap bg-surface-900 px-1.5 py-0.5 rounded border border-red-500/30">
@@ -856,6 +856,7 @@ export function ChatPanel({ conversation, loading, onMessageSent, onOptimisticMe
                                                         {formatTime(msg.createdAt)}
                                                     </span>
                                                     <div className="flex items-center gap-1">
+                                                        {msg.sendStatus === 'READ' && <span className="text-[10px] text-indigo-400 font-bold">✓✓ <Trans th="อ่านแล้ว" en="Seen" /></span>}
                                                         {msg.sendStatus === 'SENT' && <span className="text-[10px] text-brand-400">✓</span>}
                                                         {msg.sendStatus === 'PENDING' && <span className="text-[10px] text-surface-500 animate-pulse">⏳</span>}
                                                         {msg.sendStatus === 'FAILED' && (

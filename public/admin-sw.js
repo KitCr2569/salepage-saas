@@ -1,7 +1,7 @@
-// Service Worker for HDG Admin PWA
+// Service Worker for Shop Admin PWA (Multi-tenant)
 // Scoped to /admin routes only - does NOT affect the main website
 
-const CACHE_NAME = 'hdg-admin-v2';
+const CACHE_NAME = 'shop-admin-v3';
 const ADMIN_SHELL = [
   '/admin',
   '/hdg_app_icon.png',
@@ -24,7 +24,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME && key.startsWith('hdg-admin-'))
+          .filter((key) => key !== CACHE_NAME && (key.startsWith('hdg-admin-') || key.startsWith('shop-admin-')))
           .map((key) => caches.delete(key))
       )
     )

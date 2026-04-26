@@ -12,6 +12,8 @@ import { sendPurchaseEvent, isMetaCAPIConfigured } from '@/lib/meta-capi';
 import { getShopFromRequest } from '@/lib/tenant';
 import { deductStock, restoreStock, extractCartItemsForStock } from '@/lib/stock';
 import { getShopBaseUrl, getAdminUrl, getPaymentUrl } from '@/lib/url-helpers';
+import { checkRateLimit, getClientIP } from '@/lib/rate-limit';
+import { sendOrderConfirmation, sendShippingNotification, isEmailConfigured } from '@/lib/email';
 
 
 export const dynamic = 'force-dynamic';
@@ -245,6 +247,13 @@ export async function GET(request: Request) {
 // POST - Create new order (from checkout page)
 export async function POST(request: Request) {
     try {
+        // Rate limit: max 5 orders per minute per IP
+        const ip = getClientIP(request);
+        const rl = checkRateLimit(`order:${ip}`, 5, 60_000);
+        if (!rl.allowed) {
+            return NextResponse.json({ success: false, error: 'Too many requests. Please wait.' }, { status: 429 });
+        }
+
         const body = await request.json();
 
         // Support both old format and new checkout format
@@ -427,6 +436,19 @@ export async function POST(request: Request) {
             });
         }
 
+        // 📧 Email notification — order confirmation
+        if (isEmailConfigured() && customerData.email) {
+            const trackUrl = `${getShopBaseUrl()}/track/${dbOrder.orderNumber}`;
+            sendOrderConfirmation(
+                customerData.email,
+                dbOrder.orderNumber,
+                customerData.name || 'ลูกค้า',
+                items.map((item: any) => ({ name: item.name, quantity: item.quantity, price: item.price })),
+                Number(body.total || 0),
+                trackUrl,
+            ).catch(err => console.error('⚠️ Email notification failed:', err));
+        }
+
         return NextResponse.json({ success: true, order: formattedOrder });
     } catch (error: any) {
         console.error("Order creation error:", error);
@@ -571,6 +593,21 @@ export async function PATCH(request: Request) {
                 notifyCustomerShipped(psid, updatedDbOrder, trackingNumber.trim(), provider).catch(err => {
                     console.error("⚠️ Tracking notification failed:", err);
                 });
+            }
+
+            // 📧 Email shipping notification
+            if (isEmailConfigured()) {
+                const cData = typeof updatedDbOrder.customerData === 'string'
+                    ? JSON.parse(updatedDbOrder.customerData) : (updatedDbOrder.customerData || {}) as any;
+                if (cData.email) {
+                    const provider = updatedDbOrder.shippingProvider?.startsWith('Proship|')
+                        ? updatedDbOrder.shippingProvider.split('|')[2] : updatedDbOrder.shippingProvider || '';
+                    sendShippingNotification(
+                        cData.email, updatedDbOrder.orderNumber, cData.name || 'ลูกค้า',
+                        trackingNumber.trim(), provider,
+                        `${getShopBaseUrl()}/track/${updatedDbOrder.orderNumber}`,
+                    ).catch(err => console.error('⚠️ Email shipping notification failed:', err));
+                }
             }
         }
 

@@ -29,6 +29,7 @@ import { shopConfig } from "@/data";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useShopStore } from "@/store/useShopStore";
 import { useLocaleStore } from "@/store/useLocaleStore";
+import { useThemeStore } from "@/store/useThemeStore";
 
 export type AdminTab =
     | "dashboard"
@@ -155,6 +156,7 @@ export default function AdminPage() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [focusOrderId, setFocusOrderId] = useState<string | null>(null);
     const { locale, setLocale, t } = useLocaleStore();
+    const { theme, toggleTheme } = useThemeStore();
     // ⚡ Preloaded chat data — เพื่อส่งให้ AdminUnifiedChat ไม่ต้อง fetch ซ้ำ
     const [preloadedInbox, setPreloadedInbox] = useState<unknown[] | null>(null);
     const [chatToken, setChatToken] = useState<string | null>(null);
@@ -168,11 +170,14 @@ export default function AdminPage() {
             const isTokenValid = token && tokenExpiry && Date.now() < parseInt(tokenExpiry);
 
             if (!isTokenValid) {
-                // Auto-login once to get token
+                // Auto-login using env-configured credentials (multi-tenant safe)
+                const chatEmail = process.env.NEXT_PUBLIC_CHAT_ADMIN_EMAIL || 'admin@shop.com';
+                const chatPass = process.env.NEXT_PUBLIC_CHAT_ADMIN_PASSWORD || '';
+                if (!chatPass) { setChatToken(null); return; } // Skip if no password configured
                 const loginRes = await fetch('/api/chat/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: 'admin@hdg.com', password: 'admin123' }),
+                    body: JSON.stringify({ email: chatEmail, password: chatPass }),
                 });
                 const loginData = await loginRes.json();
                 if (loginData.success && loginData.data?.token) {
@@ -221,6 +226,12 @@ export default function AdminPage() {
     useEffect(() => {
         syncWithPage();
     }, [syncWithPage]);
+
+    // Apply theme on mount
+    useEffect(() => {
+        const saved = localStorage.getItem('admin-theme') || 'light';
+        document.documentElement.classList.toggle('dark', saved === 'dark');
+    }, []);
 
     // Read hash on mount and on hash changes
     useEffect(() => {
@@ -304,7 +315,7 @@ export default function AdminPage() {
     return (
         <AdminLogin>
             <AdminOrderNotification onViewOrders={(orderId) => { setFocusOrderId(orderId); handleTabChange("ecommerce-order-summary"); }} />
-            <div className="flex relative overflow-hidden h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50">
+            <div className={`flex relative overflow-hidden h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#0f0f23]' : 'bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50'}`}>
                 {/* Mobile Sidebar Overlay */}
                 {isMobileMenuOpen && (
                     <div 
@@ -388,7 +399,7 @@ export default function AdminPage() {
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden h-full">
                     {/* Top Header Bar */}
-                    <header className="bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 h-14 flex-shrink-0">
+                    <header className={`border-b flex items-center justify-between px-4 md:px-6 h-14 flex-shrink-0 transition-colors duration-300 ${theme === 'dark' ? 'bg-[#1a1a2e] border-white/10' : 'bg-white border-gray-200'}`}>
                         <button 
                             className="text-gray-500 hover:text-gray-700 md:hidden mr-2"
                             onClick={() => setIsMobileMenuOpen(true)}
@@ -397,9 +408,9 @@ export default function AdminPage() {
                         </button>
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 flex items-center justify-center shadow-md">
-                                <span className="text-white text-xs font-black tracking-tighter">H</span>
+                                <span className="text-white text-xs font-black tracking-tighter">{(useAuthStore.getState().connectedPage?.name || 'S').charAt(0)}</span>
                             </div>
-                            <span className="text-lg font-extrabold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">HDG.AI</span>
+                            <span className="text-lg font-extrabold bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">{useAuthStore.getState().connectedPage?.name || 'Shop Admin'}</span>
                         </div>
                         <div className="flex items-center gap-3">
                             <button
@@ -420,6 +431,13 @@ export default function AdminPage() {
                             >
                                 🌐 {locale === 'th' ? 'TH' : 'EN'}
                             </button>
+                            <button
+                                onClick={toggleTheme}
+                                className={`flex items-center gap-1 text-sm transition-colors px-2 py-1 rounded-lg cursor-pointer hidden md:flex ${theme === 'dark' ? 'text-yellow-400 hover:bg-yellow-400/10' : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'}`}
+                                title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                            >
+                                {theme === 'dark' ? '☀️' : '🌙'}
+                            </button>
                             <ShopSelector />
                             <div className="h-6 w-px bg-gray-200" />
                             <UserMenu />
@@ -427,7 +445,7 @@ export default function AdminPage() {
                     </header>
 
                     {/* Tab Navigation Bar - hidden on mobile for chat to maximize space */}
-                    <div className={`bg-white border-b border-gray-200 px-6 flex-shrink-0 ${activeTab === 'UnifiedChat' ? 'hidden md:block' : ''}`}>
+                    <div className={`border-b px-6 flex-shrink-0 transition-colors duration-300 ${activeTab === 'UnifiedChat' ? 'hidden md:block' : ''} ${theme === 'dark' ? 'bg-[#1a1a2e] border-white/10' : 'bg-white border-gray-200'}`}>
                         <div className="flex items-center gap-1 overflow-x-auto">
                             {/* Grid icon */}
                             <button className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center mr-2">

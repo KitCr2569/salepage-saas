@@ -209,7 +209,7 @@ export default function AdminLogin({ children }: { children: React.ReactNode }) 
                         <FacebookLoginButton appId={FACEBOOK_APP_ID} />
                     </div>
 
-                    <p className="text-center text-xs text-gray-400 mt-6">Powered by HDG.AI</p>
+                    <p className="text-center text-xs text-gray-400 mt-6">{useLocaleStore.getState().t('login.poweredBy')}</p>
                 </div>
             </div>
         );

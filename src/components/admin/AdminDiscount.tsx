@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDiscountStore, DiscountCode, QuantityTier } from "@/store/useDiscountStore";
 import { Plus, Trash2, Edit2, X, Save, Tag, ToggleLeft, ToggleRight, Percent, DollarSign, Truck, Copy, ShoppingBag } from "lucide-react";
 import { Trans } from "@/components/Trans";
@@ -26,6 +26,19 @@ export default function AdminDiscount() {
     const [form, setForm] = useState({ ...emptyDiscount });
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const [syncing, setSyncing] = useState(false);
+
+    // ─── Load discounts from DB on mount ────────────────────────
+    useEffect(() => {
+        fetch('/api/discounts')
+            .then(r => r.json())
+            .then(json => {
+                if (json.success && Array.isArray(json.data)) {
+                    useDiscountStore.setState({ discounts: json.data as DiscountCode[] });
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const showSuccess = (msg: string) => {
         setSuccessMsg(msg);
@@ -56,34 +69,30 @@ export default function AdminDiscount() {
         setModalOpen(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!form.code.trim()) return;
 
         if (editingId) {
             const autoName = form.name || (form.type === "percent" ? `ส่วนลด${form.value}%` : form.type === "free_shipping" ? "ฟรีค่าส่ง" : form.type === "quantity" ? "ส่วนลดตามจำนวน" : `ลด฿${form.value}`);
-            updateDiscount(editingId, {
-                ...form,
-                name: autoName,
-            });
+            updateDiscount(editingId, { ...form, name: autoName });
+            // Sync to DB
+            fetch('/api/discounts', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editingId, ...form, name: autoName }) }).catch(() => {});
             showSuccess("แก้ไขโค้ดส่วนลดสำเร็จ!");
         } else {
             const autoName = form.name || (form.type === "percent" ? `ส่วนลด${form.value}%` : form.type === "free_shipping" ? "ฟรีค่าส่ง" : form.type === "quantity" ? "ส่วนลดตามจำนวน" : `ลด฿${form.value}`);
-            const newDiscount: DiscountCode = {
-                id: `disc-${Date.now()}`,
-                name: autoName,
-                code: form.code.toUpperCase(),
-                type: form.type,
-                value: form.value,
-                minOrder: form.minOrder,
-                minQty: form.minQty,
-                maxUses: form.maxUses,
-                startDate: form.startDate,
-                endDate: form.endDate,
-                enabled: form.enabled,
-                usedCount: 0,
-                createdAt: Date.now(),
-            };
-            addDiscount(newDiscount);
+            // Save to DB first, use returned ID
+            try {
+                const res = await fetch('/api/discounts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, name: autoName }) });
+                const json = await res.json();
+                if (json.success && json.data) {
+                    addDiscount(json.data);
+                } else {
+                    // Fallback: add locally
+                    addDiscount({ id: `disc-${Date.now()}`, name: autoName, code: form.code.toUpperCase(), type: form.type, value: form.value, minOrder: form.minOrder, minQty: form.minQty, maxUses: form.maxUses, startDate: form.startDate, endDate: form.endDate, enabled: form.enabled, usedCount: 0, createdAt: Date.now() });
+                }
+            } catch {
+                addDiscount({ id: `disc-${Date.now()}`, name: autoName, code: form.code.toUpperCase(), type: form.type, value: form.value, minOrder: form.minOrder, minQty: form.minQty, maxUses: form.maxUses, startDate: form.startDate, endDate: form.endDate, enabled: form.enabled, usedCount: 0, createdAt: Date.now() });
+            }
             showSuccess("เพิ่มโค้ดส่วนลดสำเร็จ!");
         }
 
@@ -93,9 +102,12 @@ export default function AdminDiscount() {
 
     const handleDelete = (id: string) => {
         deleteDiscount(id);
+        // Sync to DB
+        fetch(`/api/discounts?id=${id}`, { method: 'DELETE' }).catch(() => {});
         setDeleteConfirm(null);
         showSuccess("ลบโค้ดส่วนลดสำเร็จ!");
     };
+
 
     const copyCode = (code: string) => {
         navigator.clipboard.writeText(code);

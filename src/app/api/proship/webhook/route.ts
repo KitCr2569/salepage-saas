@@ -20,7 +20,7 @@ import { getFacebookPageConfig } from "@/lib/facebook";
  *   6 = ยกเลิก (Cancelled)
  * 
  * Webhook URL to register in Proship:
- *   https://www.hdgwrapskin.com/api/proship/webhook
+ *   {NEXT_PUBLIC_APP_URL}/api/proship/webhook
  */
 
 // Map Proship numeric status to our order status

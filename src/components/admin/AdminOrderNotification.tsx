@@ -135,16 +135,91 @@ export default function AdminOrderNotification({ onViewOrders }: AdminOrderNotif
     }, [playSound]);
 
     useEffect(() => {
-        // Initial check
-        checkForNewOrders();
+        let eventSource: EventSource | null = null;
+        let interval: ReturnType<typeof setInterval> | null = null;
+        let sseConnected = false;
 
-        // Poll every 15 seconds
-        const interval = setInterval(checkForNewOrders, 15000);
+        // Try SSE first for real-time push
+        const chatToken = localStorage.getItem('chat-auth-token');
+        if (chatToken) {
+            try {
+                eventSource = new EventSource(`/api/orders/stream?token=${chatToken}`);
+
+                eventSource.addEventListener('new_order', (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.order) {
+                            const order: Order = data.order;
+                            if (latestOrderIdRef.current === null) {
+                                latestOrderIdRef.current = order.id;
+                                return;
+                            }
+                            if (order.id === latestOrderIdRef.current) return;
+
+                            latestOrderIdRef.current = order.id;
+                            setPendingOrders(prev => [order, ...prev]);
+                            setNewOrder(order);
+                            setIsVisible(true);
+                            playSound();
+
+                            // Desktop notification
+                            if ('Notification' in window && Notification.permission === 'granted') {
+                                const orderTotal = (order.total || 0).toLocaleString('th-TH');
+                                const notif = new Notification(`🛒 ออเดอร์ใหม่! #${order.id}`, {
+                                    body: `${order.customer || 'ลูกค้า'} — ฿${orderTotal}`,
+                                    icon: '/favicon.ico',
+                                    tag: `order-${order.id}`,
+                                    requireInteraction: true,
+                                });
+                                notif.onclick = () => { window.focus(); onViewOrders?.(order.id); notif.close(); };
+                            }
+
+                            // Flash title
+                            const origTitle = document.title;
+                            let flashing = true;
+                            const flashInterval = setInterval(() => {
+                                document.title = flashing ? `🛒 ออเดอร์ใหม่!` : origTitle;
+                                flashing = !flashing;
+                            }, 800);
+                            const stopFlash = () => { clearInterval(flashInterval); document.title = origTitle; window.removeEventListener('focus', stopFlash); };
+                            window.addEventListener('focus', stopFlash);
+                            setTimeout(stopFlash, 60000);
+
+                            if (timerRef.current) clearTimeout(timerRef.current);
+                            timerRef.current = setTimeout(() => setIsVisible(false), 30000);
+                        }
+                    } catch {}
+                });
+
+                eventSource.addEventListener('connected', () => { sseConnected = true; });
+                eventSource.onerror = () => {
+                    // SSE failed — fall back to polling
+                    if (!sseConnected) {
+                        eventSource?.close();
+                        eventSource = null;
+                        startPolling();
+                    }
+                };
+            } catch {
+                startPolling();
+            }
+        } else {
+            startPolling();
+        }
+
+        function startPolling() {
+            // Initial check
+            checkForNewOrders();
+            // Poll every 15 seconds
+            interval = setInterval(checkForNewOrders, 15000);
+        }
+
         return () => {
-            clearInterval(interval);
+            eventSource?.close();
+            if (interval) clearInterval(interval);
             if (timerRef.current) clearTimeout(timerRef.current);
         };
-    }, [checkForNewOrders]);
+    }, [checkForNewOrders, playSound]);
 
     const handleClose = () => {
         setIsVisible(false);

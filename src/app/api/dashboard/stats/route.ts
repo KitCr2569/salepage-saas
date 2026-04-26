@@ -1,18 +1,31 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// ⚡ In-memory cache — 30 วินาที
-let _statsCache: { data: any; expiry: number } | null = null;
+// ⚡ In-memory cache — 30 วินาที (keyed by period)
+const _statsCache: Record<string, { data: any; expiry: number }> = {};
 const STATS_CACHE_TTL = 30_000;
 
-async function fetchStats() {
-    // ใช้ cache ถ้ายังไม่หมดอายุ
-    if (_statsCache && Date.now() < _statsCache.expiry) {
-        return _statsCache.data;
+function getPeriodStart(period: string): Date {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    switch (period) {
+        case 'today': return today;
+        case 'week': return new Date(today.getTime() - 7 * 86400000);
+        case 'month': return new Date(today.getTime() - 30 * 86400000);
+        default: return new Date(0); // 'all'
+    }
+}
+
+async function fetchStats(period: string = 'all') {
+    const cacheKey = period;
+    if (_statsCache[cacheKey] && Date.now() < _statsCache[cacheKey].expiry) {
+        return _statsCache[cacheKey].data;
     }
     try {
+        const periodStart = getPeriodStart(period);
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const weekAgo = new Date(today.getTime() - 7 * 86400000);
@@ -28,7 +41,10 @@ async function fetchStats() {
             prisma.conversation.count(),
             prisma.message.count(),
             prisma.ecommerceOrder.findMany({
-                where: { status: { notIn: ['cancelled', 'คืนสินค้า'] } },
+                where: {
+                    status: { notIn: ['cancelled', 'คืนสินค้า'] },
+                    ...(period !== 'all' ? { createdAt: { gte: periodStart } } : {}),
+                },
                 orderBy: { createdAt: 'desc' },
             }),
         ]);
@@ -53,23 +69,35 @@ async function fetchStats() {
         const todayRevenue = todayOrders.reduce((s: number, o: any) => s + Number(o.total || 0), 0);
         const weekRevenue = weekOrders.reduce((s: number, o: any) => s + Number(o.total || 0), 0);
 
+        // Order status breakdown
+        const statusBreakdown: Record<string, number> = {};
+        allOrders.forEach((o: any) => {
+            const status = o.status || 'pending';
+            statusBreakdown[status] = (statusBreakdown[status] || 0) + 1;
+        });
+
         // Top products from JSON itemsData
         const productCounts: Record<string, number> = {};
+        const productRevenue: Record<string, number> = {};
         allOrders.forEach((o: any) => {
             const items = o.itemsData as any[];
             if (!Array.isArray(items)) return;
             items.forEach((item: any) => {
                 const name = item.name || item.productName || 'Unknown';
-                productCounts[name] = (productCounts[name] || 0) + (item.quantity || 1);
+                const qty = item.quantity || 1;
+                productCounts[name] = (productCounts[name] || 0) + qty;
+                productRevenue[name] = (productRevenue[name] || 0) + (Number(item.price || 0) * qty);
             });
         });
         const topProducts = Object.entries(productCounts)
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 5);
+            .slice(0, 10);
 
-        // Daily data (last 7 days)
+        // Daily data (based on period, max 30 days)
+        const chartStart = period === 'today' ? today : period === 'all' ? weekAgo : periodStart;
+        const chartOrders = allOrders.filter((o: any) => o.createdAt >= chartStart);
         const dailyData: Record<string, { orders: number; revenue: number }> = {};
-        weekOrders.forEach((o: any) => {
+        chartOrders.forEach((o: any) => {
             const key = o.createdAt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', timeZone: 'Asia/Bangkok' });
             if (!dailyData[key]) dailyData[key] = { orders: 0, revenue: 0 };
             dailyData[key].orders++;
@@ -110,12 +138,14 @@ async function fetchStats() {
             weekOrders: weekOrders.length,
             weekRevenue,
             avgOrder: allOrders.length > 0 ? Math.round(totalRevenue / allOrders.length) : 0,
+            statusBreakdown,
             topProducts,
             dailyData: Object.entries(dailyData),
             recentOrders,
+            period,
         };
         // บันทึก cache
-        _statsCache = { data: result, expiry: Date.now() + STATS_CACHE_TTL };
+        _statsCache[cacheKey] = { data: result, expiry: Date.now() + STATS_CACHE_TTL };
         return result;
     } catch (error) {
         console.error('Dashboard stats error:', error);
@@ -123,9 +153,13 @@ async function fetchStats() {
     }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
-        const data = await fetchStats();
+        const auth = await getAuthFromRequest(request);
+        if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
+        const period = request.nextUrl.searchParams.get('period') || 'all';
+        const data = await fetchStats(period);
         return NextResponse.json({
             success: true,
             data,
@@ -137,3 +171,4 @@ export async function GET() {
         return NextResponse.json({ success: false, error: 'Failed to fetch stats' }, { status: 500 });
     }
 }
+

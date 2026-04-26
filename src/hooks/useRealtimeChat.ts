@@ -29,6 +29,7 @@ interface UseRealtimeChatOptions {
     conversationId: string | null;
     onNewMessage: (message: Message) => void;
     onMessageDeleted?: (messageId: string) => void;
+    onMessageRead?: (watermark: number) => void;
     // ⚡ ลบ fetchConversation — ไม่ต้อง refetch ทั้ง conversation แล้ว
 }
 
@@ -39,11 +40,13 @@ export function useRealtimeChat({
 }: UseRealtimeChatOptions) {
     const onNewMessageRef = typeof window !== 'undefined' ? require('react').useRef(onNewMessage) : { current: onNewMessage };
     const onMessageDeletedRef = typeof window !== 'undefined' ? require('react').useRef(onMessageDeleted) : { current: onMessageDeleted };
+    const onMessageReadRef = typeof window !== 'undefined' ? require('react').useRef(onMessageRead) : { current: onMessageRead };
 
     useEffect(() => {
         onNewMessageRef.current = onNewMessage;
         onMessageDeletedRef.current = onMessageDeleted;
-    }, [onNewMessage, onMessageDeleted]);
+        onMessageReadRef.current = onMessageRead;
+    }, [onNewMessage, onMessageDeleted, onMessageRead]);
 
     const handleBroadcast = useCallback(
         (payload: { payload: BroadcastPayload }) => {
@@ -65,6 +68,13 @@ export function useRealtimeChat({
         }
     }, []);
 
+    const handleReadBroadcast = useCallback((payload: any) => {
+        const watermark = payload?.payload?.watermark;
+        if (watermark && onMessageReadRef.current) {
+            onMessageReadRef.current(watermark);
+        }
+    }, []);
+
     useEffect(() => {
         if (!conversationId) return;
 
@@ -73,6 +83,7 @@ export function useRealtimeChat({
             .channel(`chat:${conversationId}`)
             .on('broadcast', { event: 'new_message' }, handleBroadcast)
             .on('broadcast', { event: 'message_deleted' }, handleDeleteBroadcast)
+            .on('broadcast', { event: 'message_read' }, handleReadBroadcast)
             .subscribe();
 
         return () => {

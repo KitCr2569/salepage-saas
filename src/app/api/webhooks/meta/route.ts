@@ -777,6 +777,43 @@ export async function POST(request: NextRequest) {
         const messages = adapter.parseInboundMessages(body);
 
         for (const msg of messages) {
+            // ─── READ RECEIPT ───
+            if (msg.type === 'READ') {
+                const contact = await prisma.contact.findFirst({
+                    where: { platformContactId: msg.platformContactId }
+                });
+                if (contact) {
+                    const conversation = await prisma.conversation.findFirst({
+                        where: { contactId: contact.id, status: { in: ['OPEN', 'ASSIGNED'] } }
+                    });
+                    if (conversation) {
+                        logger.info('Webhook:Meta', `Read event for conversation ${conversation.id}, watermark: ${msg.readWatermark}`);
+                        
+                        // 1. Update DB (Persistent)
+                        try {
+                            await prisma.message.updateMany({
+                                where: {
+                                    conversationId: conversation.id,
+                                    direction: 'OUTBOUND',
+                                    sendStatus: { not: 'READ' },
+                                    createdAt: { lte: new Date(msg.readWatermark!) }
+                                },
+                                data: { sendStatus: 'READ' }
+                            });
+                        } catch (dbErr) {
+                            logger.warn('Webhook:Meta', `Failed to update READ status in DB: ${dbErr}`);
+                        }
+
+                        // 2. Broadcast Realtime (Instant UI update)
+                        await broadcastMessage(`chat:${conversation.id}`, 'message_read', {
+                            conversationId: conversation.id,
+                            watermark: msg.readWatermark,
+                        });
+                    }
+                }
+                continue; // Skip the rest of message processing for READ events
+            }
+
             // Create channel if not exists
             let channel = dbChannel;
             if (!channel) {

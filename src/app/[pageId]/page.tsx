@@ -1,6 +1,30 @@
 import { prisma } from "@/lib/prisma";
+import type { Metadata } from "next";
 import ShopClient from "./ShopClient";
 import { products as defaultProducts, categories as defaultCategories, shopConfig as defaultShopConfig } from "@/data";
+
+export async function generateMetadata({ params }: { params: Promise<{ pageId: string }> }): Promise<Metadata> {
+    const { pageId } = await params;
+    try {
+        const shop = await prisma.shop.findUnique({
+            where: { pageId },
+            select: { name: true, logo: true },
+        });
+        const shopName = shop?.name || "Shop";
+        return {
+            title: `${shopName} — ร้านค้าออนไลน์`,
+            description: `ร้านค้าออนไลน์ ${shopName} — สินค้าคุณภาพ สั่งซื้อง่าย จัดส่งทั่วประเทศ`,
+            openGraph: {
+                title: shopName,
+                description: `สั่งซื้อสินค้าจาก ${shopName}`,
+                type: "website",
+                ...(shop?.logo ? { images: [{ url: shop.logo, width: 400, height: 400, alt: shopName }] } : {}),
+            },
+        };
+    } catch {
+        return { title: "Shop" };
+    }
+}
 
 async function getSettings() {
     try {

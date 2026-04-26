@@ -57,9 +57,14 @@ export default function PlatformAdminPage() {
   const [invCreating, setInvCreating] = useState(false);
   const [copied, setCopied] = useState("");
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [settings, setSettings] = useState<Record<string, string>>({});
 
   useEffect(() => { loadFromStorage().then(() => setLoaded(true)); }, []);
   useEffect(() => { if (loaded && !token) router.push("/login"); }, [loaded, token, router]);
+  useEffect(() => {
+    fetch("/api/platform-settings").then(r => r.json())
+      .then(d => setSettings(d.data || {})).catch(() => {});
+  }, []);
 
   const fetchData = useCallback(async (action: string) => {
     if (!token) return;
@@ -190,7 +195,7 @@ export default function PlatformAdminPage() {
 
   return (
     <div className="min-h-screen bg-[#0f0f23] text-white flex">
-      <PlatformSidebar activeTab={tab} onTabChange={setTab} brandName="HDG ADS" email={tenant.email} />
+      <PlatformSidebar activeTab={tab} onTabChange={setTab} brandName={settings.brand_name || "SaaS Platform"} email={tenant.email} />
 
       <main className="flex-1 overflow-y-auto">
         {/* Top bar */}
@@ -627,13 +632,13 @@ function SettingsPanel({ token }: { token: string | null }) {
       <p className="text-xs text-gray-500 mb-6">ข้อมูลจะแสดงที่หน้า Landing, Login และหลังบ้าน</p>
       <div className="grid grid-cols-2 gap-4">
         <div><label className="text-xs text-gray-400 mb-1.5 block">💬 LINE ID</label>
-          <input type="text" placeholder="@hdgsaas" value={lineId} onChange={e => setLineId(e.target.value)} className={ic} /></div>
+          <input type="text" placeholder="@yourshop" value={lineId} onChange={e => setLineId(e.target.value)} className={ic} /></div>
         <div><label className="text-xs text-gray-400 mb-1.5 block">🔗 LINE URL</label>
-          <input type="text" placeholder="https://line.me/ti/p/@hdgsaas" value={lineUrl} onChange={e => setLineUrl(e.target.value)} className={ic} /></div>
+          <input type="text" placeholder="https://line.me/ti/p/@yourshop" value={lineUrl} onChange={e => setLineUrl(e.target.value)} className={ic} /></div>
         <div><label className="text-xs text-gray-400 mb-1.5 block">📘 Facebook Page URL</label>
-          <input type="text" placeholder="https://facebook.com/hdgsaas" value={fbUrl} onChange={e => setFbUrl(e.target.value)} className={ic} /></div>
+          <input type="text" placeholder="https://facebook.com/yourshop" value={fbUrl} onChange={e => setFbUrl(e.target.value)} className={ic} /></div>
         <div><label className="text-xs text-gray-400 mb-1.5 block">✨ ชื่อแบรนด์</label>
-          <input type="text" placeholder="HDG ADS" value={brand} onChange={e => setBrand(e.target.value)} className={ic} /></div>
+          <input type="text" placeholder="My Brand" value={brand} onChange={e => setBrand(e.target.value)} className={ic} /></div>
       </div>
       <div className="mt-6 flex justify-end">
         <button onClick={save} disabled={saving}

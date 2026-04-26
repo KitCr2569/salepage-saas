@@ -1,15 +1,15 @@
 // ─── Shared URL helpers for SaaS multi-tenant ────────────────
-// All API routes should use these helpers instead of hardcoding hdgwrapskin.com
+// All API routes should use these helpers instead of hardcoding domain URLs
 
 /**
- * Returns the base URL for the shop (e.g. "https://www.hdgwrapskin.com")
- * Priority: VERCEL_URL > NEXT_PUBLIC_APP_URL > fallback
+ * Returns the base URL for the shop
+ * Priority: VERCEL_URL > NEXT_PUBLIC_APP_URL > localhost fallback
  */
 export function getShopBaseUrl(): string {
     if (process.env.VERCEL_URL) {
         return `https://${process.env.VERCEL_URL}`;
     }
-    return (process.env.NEXT_PUBLIC_APP_URL || 'https://www.hdgwrapskin.com').replace(/\/$/, '');
+    return (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 }
 
 /**

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, ShoppingCart, ChevronLeft, ChevronRight } from 
 import { products as allProducts } from "@/data";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useShopStore } from "@/store/useShopStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { banks } from "@/data";
 import { useDiscountStore } from "@/store/useDiscountStore";
 import { useCartStore } from "@/store/useCartStore";
@@ -259,10 +260,13 @@ export default function CheckoutPage() {
             // ส่งเป็น checkout_ ref ไป Messenger
             const refString = `checkout_${orderNumber}`;
 
-            // Open Messenger - webhook will send the confirmation
-            const FACEBOOK_PAGE_ID = "114336388182180";
-            const messengerUrl = `https://m.me/${FACEBOOK_PAGE_ID}?ref=${encodeURIComponent(refString)}`;
-            window.location.href = messengerUrl;
+            // Open Messenger - use connected page ID (multi-tenant safe)
+            const connectedPage = useAuthStore.getState().connectedPage;
+            const dynamicPageId = connectedPage?.id || process.env.NEXT_PUBLIC_FB_PAGE_ID || "";
+            if (dynamicPageId) {
+                const messengerUrl = `https://m.me/${dynamicPageId}?ref=${encodeURIComponent(refString)}`;
+                window.location.href = messengerUrl;
+            }
 
             // Save order to localStorage for order tracking page
             localStorage.setItem(`hdg_order_${orderNumber}`, JSON.stringify({

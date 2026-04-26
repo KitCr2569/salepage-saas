@@ -8,11 +8,12 @@ interface InboundMessage {
     platformContactId: string;
     contactDisplayName?: string;
     contactAvatarUrl?: string;
-    type: 'TEXT' | 'IMAGE' | 'FILE';
+    type: 'TEXT' | 'IMAGE' | 'FILE' | 'READ';
     content?: string;
     imageUrl?: string;
     timestamp: Date;
     rawPayload?: Record<string, unknown>;
+    readWatermark?: number; // สำหรับเหตุการณ์ READ
 }
 
 // Echo message — ข้อความที่เพจส่งออกไป (ตอบลูกค้าผ่าน Facebook Inbox)
@@ -62,25 +63,42 @@ function createMetaAdapter(config?: Record<string, unknown> | null): ChannelAdap
                         is_echo?: boolean;
                         attachments?: Array<{ type: string; payload: { url: string } }>;
                     } | undefined;
+                    const read = event.read as { watermark: number } | undefined;
 
-                    if (!sender || !message) continue;
+                    if (!sender) continue;
+                    if (!message && !read) continue;
 
-                    // Skip echo messages (messages sent BY the page)
-                    if (message.is_echo) continue;
+                    // Handle Message
+                    if (message) {
+                        // Skip echo messages (messages sent BY the page)
+                        if (message.is_echo) continue;
 
-                    // Skip if sender is the page itself
-                    if (pageId && sender.id === pageId) continue;
+                        // Skip if sender is the page itself
+                        if (pageId && sender.id === pageId) continue;
 
-                    const isImage = message.attachments?.some(a => a.type === 'image');
-                    messages.push({
-                        platformMessageId: message.mid || `msg-${Date.now()}`,
-                        platformContactId: sender.id,
-                        type: isImage ? 'IMAGE' : 'TEXT',
-                        content: message.text || '',
-                        imageUrl: isImage ? message.attachments?.[0]?.payload?.url : undefined,
-                        timestamp: new Date(event.timestamp as number || Date.now()),
-                        rawPayload: event as Record<string, unknown>,
-                    });
+                        const isImage = message.attachments?.some(a => a.type === 'image');
+                        messages.push({
+                            platformMessageId: message.mid || `msg-${Date.now()}`,
+                            platformContactId: sender.id,
+                            type: isImage ? 'IMAGE' : 'TEXT',
+                            content: message.text || '',
+                            imageUrl: isImage ? message.attachments?.[0]?.payload?.url : undefined,
+                            timestamp: new Date(event.timestamp as number || Date.now()),
+                            rawPayload: event as Record<string, unknown>,
+                        });
+                    }
+
+                    // Handle Read Receipt
+                    if (read) {
+                        messages.push({
+                            platformMessageId: `read-${read.watermark}`,
+                            platformContactId: sender.id,
+                            type: 'READ',
+                            timestamp: new Date(event.timestamp as number || Date.now()),
+                            readWatermark: read.watermark,
+                            rawPayload: event as Record<string, unknown>,
+                        });
+                    }
                 }
 
                 // Instagram format (changes array)

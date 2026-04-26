@@ -1,7 +1,7 @@
 {
-  "name": "HDG.AI Admin - แชท & คำสั่งซื้อ",
-  "short_name": "HDG Admin",
-  "description": "จัดการแชทลูกค้า เปิดบิลคำสั่งซื้อ สำหรับ HDG Wrap",
+  "name": "Shop Admin - Chat & Orders",
+  "short_name": "Shop Admin",
+  "description": "Manage customer chat, orders, and analytics for your store",
   "start_url": "/admin#UnifiedChat",
   "scope": "/admin",
   "display": "standalone",
@@ -25,15 +25,21 @@
   ],
   "shortcuts": [
     {
-      "name": "รวมแชท",
-      "short_name": "แชท",
+      "name": "Chat",
+      "short_name": "Chat",
       "url": "/admin#UnifiedChat",
       "icons": [{ "src": "/hdg_app_icon.png", "sizes": "192x192" }]
     },
     {
-      "name": "คำสั่งซื้อ",
-      "short_name": "ออเดอร์",
+      "name": "Orders",
+      "short_name": "Orders",
       "url": "/admin#ecommerce-order-summary",
+      "icons": [{ "src": "/hdg_app_icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "url": "/admin#analytics",
       "icons": [{ "src": "/hdg_app_icon.png", "sizes": "192x192" }]
     }
   ]

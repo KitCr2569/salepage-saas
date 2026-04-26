@@ -508,6 +508,22 @@ export default function AdminUnifiedChat({ initialInbox, initialChatToken }: Adm
                 };
             });
         },
+        onMessageRead: (watermark) => {
+            setConversation(prev => {
+                if (!prev) return prev;
+                // Update sendStatus to 'READ' for all OUTBOUND messages older than the watermark
+                const updatedMessages = prev.messages.map(m => {
+                    if (m.direction === 'OUTBOUND' && m.sendStatus !== 'READ') {
+                        const msgTime = new Date(m.createdAt).getTime();
+                        if (msgTime <= watermark) {
+                            return { ...m, sendStatus: 'READ' };
+                        }
+                    }
+                    return m;
+                });
+                return { ...prev, messages: updatedMessages };
+            });
+        },
     });
 
     const quickTabs = [
